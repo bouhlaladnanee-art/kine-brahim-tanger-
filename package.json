@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "fb-login": "firebase login",
-    "deploy": "firebase deploy"
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:app": "firebase deploy --only hosting,firestore"
   },
   "dependencies": {
     "clsx": "^2.1.1",
