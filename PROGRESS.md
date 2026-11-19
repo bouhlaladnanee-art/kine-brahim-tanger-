@@ -7,49 +7,44 @@ Suivi des phases de développement et traçabilité des modifications.
 ## [Phase 1] — Initialisation, Architecture & Design System Mobile-First
 **Date & Heure :** 19 Novembre 2026 à 19:35  
 **Statut :** ✅ Validé & Compilé avec succès
+- Git initialisé, `.gitignore` strict, architecture documentée dans `ARCHITECTURE.md`.
+- Design System configuré (Vert Sauge `#2E6F65`, Corail Doux `#E07A5F`, Fond `#F8FAFC`, Anthracite `#1E293B`, Typographie Plus Jakarta Sans).
+- PWA `manifest.json` et Service Worker validés.
+- Commit : `feat(phase-1): initialize project, architecture, pwa & mobile-first design system`.
+
+---
+
+## [Phase 2] — Interface Patient Complète (Landing Page & Tunnel de Réservation 4 Étapes)
+**Date & Heure :** 19 Novembre 2026 à 19:42  
+**Statut :** ✅ Développé, Testé & Validé
 
 ### Fichiers créés / modifiés :
-- `.gitignore` : Exclusion stricte de `node_modules`, `dist`, `.env`, clés de sécurité et secrets Firebase.
-- `.env.example` : Modèle documenté des variables d'environnement (Firebase Spark + identité Kiné Tanger).
-- `package.json` & `package-lock.json` : Dépendances de production (React 18, Vite 5, Tailwind CSS, Lucide React, React Router DOM, Vite PWA, date-fns).
-- `postcss.config.js` : Configuration PostCSS pour compilation Tailwind.
-- `tailwind.config.js` : Design tokens Mobile-First sur-mesure :
-  - Fond apaisant : `#F8FAFC`
-  - Couleur primaire Santé : `#2E6F65` (Vert Sauge apaisant avec échelle complète)
-  - Couleur accentuation CTA : `#E07A5F` (Corail doux)
-  - Texte principal : `#1E293B` (Gris anthracite, fort contraste)
-  - Typographie : *Plus Jakarta Sans* / *Inter*
-  - Ombres douces, arrondis tactiles 2xl/3xl, safe-areas mobiles
-- `vite.config.js` : Vite avec plugins React & VitePWA (manifest, service workers autoUpdate).
-- `public/manifest.json` : Configuration PWA autonome pour smartphone (`standalone`, orientation portrait).
-- `public/favicon.svg` : Icône vectorielle médicale épurée.
-- `index.html` : Meta tags PWA, responsive viewport `viewport-fit=cover`, import de la typographie *Plus Jakarta Sans*.
-- `ARCHITECTURE.md` : Documentation exhaustive de l'architecture, de la stack, du schéma Firestore `appointments`, des règles de sécurité, de l'UX et des spécificités géographiques de Tanger.
-- `src/index.css` : Styles de base Tailwind, gestion du touch tap highlight iOS et des safe-areas iPhone/Android.
-- `src/data/constants.js` : Données fixes : liste complète des quartiers de Tanger (Malabata, Centre-ville, Iberia, Marshan, Castilla, Val Fleuri, Mesnana, Moujahidine, Boukhalef, Tanger Balia, Autre), spécialités de kinésithérapie, plages horaires et statuts Firestore.
-- `src/components/common/Button.jsx` : Composant bouton tactile (variantes primaire sauge, accent corail, outline, soft, ghost, états loading et gestion d'icônes).
-- `src/components/common/Badge.jsx` : Badge d'état avec puce colorée pour les 4 statuts Firestore (`en_attente`, `confirme`, `accompli`, `annule`).
-- `src/components/common/Card.jsx` : Carte interactive avec ombres douces et retours haptiques visuels.
-- `src/components/common/Header.jsx` : En-tête mobile sticky avec indicateur de disponibilité en direct et bouton d'appel direct.
-- `src/components/layout/MobileContainer.jsx` : Conteneur Mobile-First centré sur grand écran et 100% natif sur smartphone.
-- `src/pages/PhaseOneShowcase.jsx` : Page vitrine démontrant la fidélité du Design System et la cohérence de l'interface.
-- `src/App.jsx` : Configuration du routage de base avec React Router DOM.
-- `src/main.jsx` : Point d'ancrage React.
-- `PROGRESS.md` : Suivi continu et traçabilité du projet.
+- `src/utils/whatsapp.js` : Générateur d'URL WhatsApp (`wa.me`) avec encodage complet des informations de réservation (nom, téléphone, soin, quartier, date, créneau, lien GPS et ordonnance) pour confirmation instantanée en un clic.
+- `src/utils/geolocation.js` : Module de géolocalisation HTML5 pour récupérer les coordonnées GPS exactes du patient à Tanger avec gestion des erreurs et de la précision.
+- `src/services/mockStorage.js` : Store persistant (`localStorage`) respectant la structure de la collection Firestore `appointments` (`id`, `patientName`, `phone`, `careType`, `neighborhood`, `geoCoordinates`, `date`, `timeSlot`, `status: "en_attente"`, etc.). Fourni avec des rendez-vous d'exemple réalistes à Tanger (Malabata, Iberia, Marshan).
+- `src/components/patient/LandingHero.jsx` : En-tête avec avatar médical professionnel de Brahim El Mansouri, titre, bio rassurante, tarification transparente en Dirhams marocains (À partir de 200 DH / séance, paiement sur place, matériel fourni), badge de disponibilité en direct à Tanger et gros bouton CTA Corail.
+- `src/components/patient/SpecialtiesGrid.jsx` : Grille interactive des spécialités de rééducation (Post-opératoire, Mal de dos & Sciatique, Kiné respiratoire, Seniors, Kiné du sport, Autre soin). Cliquer sur une spécialité l'injecte automatiquement dans le tunnel de réservation.
+- `src/components/patient/TrustBanner.jsx` : Éléments de réassurance médicale (hygiène stricte du matériel, ponctualité, attestation pour remboursement mutuelle / CNSS) et rappel des quartiers desservis à Tanger.
+- `src/components/patient/FloatingContact.jsx` : Bouton d'urgence flottant WhatsApp direct en bas d'écran.
+- `src/components/patient/BookingFlow.jsx` : Tunnel de réservation Mobile-First en 4 étapes fluides avec barre de progression interactive :
+  1. **Étape 1 — Motif & Ordonnance :** Sélection visuelle du soin + upload photo ou caméra d'ordonnance médicale avec prévisualisation et suppression.
+  2. **Étape 2 — Localisation à Tanger :** Liste déroulante des 11 quartiers de Tanger + précisions d'adresse + bouton **"Utiliser ma position GPS actuelle"** (capture des coordonnées `latitude`/`longitude`).
+  3. **Étape 3 — Date & Créneau :** Défilement tactile des 14 prochains jours disponibles (Aujourd'hui, Demain...) + sélection de la plage horaire (Matin 9h-12h, Après-midi 14h-17h, Fin de journée 17h-20h).
+  4. **Étape 4 — Coordonnées & Validation :** Saisie du nom, téléphone marocain, remarques médicales/accès + récapitulatif clair avant validation.
+  - **Écran de Confirmation :** Message rassurant, récapitulatif complet et gros bouton vert **"Confirmer ma demande sur WhatsApp"** avec message pré-rempli.
+- `src/pages/PatientHome.jsx` : Page d'accueil intégrant la Landing, la bascule fluide vers le formulaire de réservation et le lien discret vers l'espace admin.
+- `src/App.jsx` : Intégration du composant `PatientHome`.
+- `PROGRESS.md` : Mise à jour du journal de bord.
 
 ### Résumé des actions réalisées :
-1. Initialisation du dépôt Git local (`git init -b main`).
-2. Installation et compilation sans aucune erreur de l'ensemble de la suite technique (React, Vite, Tailwind CSS, Lucide React, Vite PWA).
-3. Intégration complète de la direction artistique : Vert Sauge `#2E6F65`, Corail Doux `#E07A5F`, Fond `#F8FAFC`, Anthracite `#1E293B`.
-4. Préparation PWA avec support des écrans tactiles et manifest.
-5. Rédaction de la documentation d'architecture technique `ARCHITECTURE.md`.
+1. Implémentation complète de l'expérience Patient sans friction, orientée conversion et accessibilité pour les personnes souffrantes ou peu habituées aux outils numériques.
+2. Intégration du format local marocain (Téléphone, MAD / DH, quartiers de Tanger).
+3. Test de compilation réussi (`npm run build` : 0 erreur).
+4. Démarrage du serveur local Vite sur `http://127.0.0.1:3000` pour prévisualisation immédiate.
 
 ### Prochaines étapes :
-- **Attente de la validation de la Phase 1 par le commanditaire.**
-- **Phase 2 :** Développement complet de l'espace Patient (`/`) :
-  - Landing page rassurante avec bio, spécialités, tarif clair en MAD et bouton d'urgence WhatsApp.
-  - Tunnel de réservation interactif en 4 étapes :
-    1. Motif & Ordonnance (upload image / appareil photo)
-    2. Localisation Tanger (liste quartiers + géolocalisation GPS HTML5 du navigateur)
-    3. Date & Créneau (Matin, Après-midi, Fin de journée)
-    4. Coordonnées & Confirmation WhatsApp avec message pré-rempli.
+- Validation de la Phase 2 par le commanditaire.
+- Lancement de la **Phase 3 : Espace Kiné (`/admin`)** :
+  - Authentification / accès praticien
+  - Barre de navigation fixe à 3 onglets (Tournée du jour, Demandes en attente avec badge compteur, Historique complet)
+  - Boutons d'action rapide : Waze / Google Maps GPS direct, Appel direct, WhatsApp "J'arrive dans 10 min", Ajout à l'Agenda Google / fichier `.ics`, validation et refus.
