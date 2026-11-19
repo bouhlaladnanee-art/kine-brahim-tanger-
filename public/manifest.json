@@ -1,0 +1,18 @@
+{
+  "name": "Kiné Tanger Domicile",
+  "short_name": "Kiné Tanger",
+  "description": "Application de prise de rendez-vous pour kinésithérapeute à domicile à Tanger",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2E6F65",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
