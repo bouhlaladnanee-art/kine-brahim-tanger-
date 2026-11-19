@@ -1,7 +1,7 @@
 // Données constantes pour l'application Kiné Tanger
 
 export const PRACTITIONER_INFO = {
-  name: "Brahim El Mansouri",
+  name: "BOUHLAL Ibrahim",
   title: "Kinésithérapeute Diplômé d'État",
   subtitle: "Soins & Rééducation exclusivement à domicile",
   city: "Tanger, Maroc",

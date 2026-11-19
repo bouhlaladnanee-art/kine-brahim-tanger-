@@ -33,7 +33,7 @@ export default function LandingHero({ onStartBooking }) {
   // Message WhatsApp direct adapté
   const directWaText = currentLanguage === 'ar'
     ? "السلام عليكم إبراهيم، أريد حجز موعد لحصة ترويض طبي منزلي في طنجة."
-    : "Bonjour Brahim, je souhaite convenir d'un rendez-vous pour une séance de kiné à domicile à Tanger.";
+    : "Bonjour Ibrahim, je souhaite convenir d'un rendez-vous pour une séance de kiné à domicile à Tanger.";
   const directWhatsAppLink = `https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent(directWaText)}`;
 
   return (

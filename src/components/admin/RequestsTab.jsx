@@ -217,7 +217,7 @@ export default function RequestsTab({
               </button>
 
               <a
-                href={`https://wa.me/${formatWhatsAppNumber(confirmedModalApt.phone)}?text=${encodeURIComponent(`Bonjour ${confirmedModalApt.patientName}, votre demande de kinésithérapie à domicile à Tanger pour le ${confirmedModalApt.date} (${confirmedModalApt.timeSlotLabel}) est bien confirmée. À très bientôt ! Brahim El Mansouri.`)}`}
+                href={`https://wa.me/${formatWhatsAppNumber(confirmedModalApt.phone)}?text=${encodeURIComponent(`Bonjour ${confirmedModalApt.patientName}, votre demande de kinésithérapie à domicile à Tanger pour le ${confirmedModalApt.date} (${confirmedModalApt.timeSlotLabel}) est bien confirmée. À très bientôt ! BOUHLAL Ibrahim.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-[#25D366] text-white text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-xs"

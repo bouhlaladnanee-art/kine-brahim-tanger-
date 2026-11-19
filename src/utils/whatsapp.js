@@ -51,7 +51,7 @@ export function generatePatientWhatsAppLink({
     }
     msg += `\nشكراً لتأكيد موعد مروركم الكريم!`;
   } else if (language === 'en') {
-    msg = `Hello Brahim, I have just booked an in-home physiotherapy session in Tangier:\n\n`;
+    msg = `Hello Ibrahim, I have just booked an in-home physiotherapy session in Tangier:\n\n`;
     msg += `👤 *Patient:* ${patientName}\n`;
     msg += `📞 *Phone:* ${phone}\n`;
     msg += `🩺 *Care:* ${careTypeTitle}\n`;
@@ -69,7 +69,7 @@ export function generatePatientWhatsAppLink({
     }
     msg += `\nThank you for confirming your visit!`;
   } else if (language === 'es') {
-    msg = `Hola Brahim, acabo de solicitar una cita de fisioterapia a domicilio en Tánger:\n\n`;
+    msg = `Hola Ibrahim, acabo de solicitar una cita de fisioterapia a domicilio en Tánger:\n\n`;
     msg += `👤 *Paciente:* ${patientName}\n`;
     msg += `📞 *Teléfono:* ${phone}\n`;
     msg += `🩺 *Tratamiento:* ${careTypeTitle}\n`;
@@ -88,7 +88,7 @@ export function generatePatientWhatsAppLink({
     msg += `\n¡Muchas gracias por confirmar su visita!`;
   } else {
     // Français (par défaut)
-    msg = `Bonjour Brahim, je viens d'effectuer une demande de rendez-vous pour une séance de kinésithérapie à domicile à Tanger :\n\n`;
+    msg = `Bonjour Ibrahim, je viens d'effectuer une demande de rendez-vous pour une séance de kinésithérapie à domicile à Tanger :\n\n`;
     msg += `👤 *Patient :* ${patientName}\n`;
     msg += `📞 *Téléphone :* ${phone}\n`;
     msg += `🩺 *Soin :* ${careTypeTitle}\n`;
@@ -115,6 +115,6 @@ export function generatePatientWhatsAppLink({
  */
 export function generateKineArrivalWhatsAppLink(patientPhone, patientName) {
   const number = formatWhatsAppNumber(patientPhone);
-  const msg = `Bonjour ${patientName || ''}, je suis Brahim votre kinésithérapeute. Je suis en route et j'arrive à votre domicile dans environ 10 minutes. À tout de suite !`;
+  const msg = `Bonjour ${patientName || ''}, je suis Ibrahim votre kinésithérapeute. Je suis en route et j'arrive à votre domicile dans environ 10 minutes. À tout de suite !`;
   return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
 }

@@ -587,11 +587,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                     Aucun créneau ouvert pour les prochains jours
                   </h3>
                   <p className="text-xs text-text-muted">
-                    Brahim n'a pas encore ouvert ses disponibilités sur cette période. Vous pouvez le contacter directement sur WhatsApp pour convenir d'une séance sur mesure.
+                    {t('noSlotsDesc') || "Ibrahim n'a pas encore ouvert ses disponibilités sur cette période. Vous pouvez le contacter directement sur WhatsApp pour convenir d'une séance sur mesure."}
                   </p>
                 </div>
                 <a
-                  href={`https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent("Bonjour Brahim, je souhaite savoir quand vous avez des disponibilités pour une séance de kiné à domicile à Tanger.")}`}
+                  href={`https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent(t('waGreeting') || "Bonjour Ibrahim, je souhaite savoir quand vous avez des disponibilités pour une séance de kiné à domicile à Tanger.")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-[#25D366] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs"

@@ -11,12 +11,12 @@ export default function FloatingContact() {
       return "السلام عليكم إبراهيم، أريد الاستفسار عن حصة ترويض طبي منزلي في طنجة.";
     }
     if (currentLanguage === 'en') {
-      return "Hello Brahim, I would like to inquire about home physiotherapy in Tangier.";
+      return "Hello Ibrahim, I would like to inquire about home physiotherapy in Tangier.";
     }
     if (currentLanguage === 'es') {
-      return "Hola Brahim, quisiera información sobre sesiones de fisioterapia a domicilio en Tánger.";
+      return "Hola Ibrahim, quisiera información sobre sesiones de fisioterapia a domicilio en Tánger.";
     }
-    return "Bonjour Brahim, je souhaite un renseignement pour une séance de kiné à domicile à Tanger.";
+    return "Bonjour Ibrahim, je souhaite un renseignement pour une séance de kiné à domicile à Tanger.";
   };
 
   const directWhatsAppUrl = `https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent(getWaText())}`;

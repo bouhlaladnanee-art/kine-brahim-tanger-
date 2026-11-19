@@ -29,6 +29,12 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    // Paramètres généraux & disponibilités publiques (aucune donnée patient)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     // Interdiction par défaut pour tout autre document
     match /{document=**} {
       allow read, write: if false;

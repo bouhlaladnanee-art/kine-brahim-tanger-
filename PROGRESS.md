@@ -98,3 +98,24 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ### Résumé :
 Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pure + Numéro + Tarif à partir de 200 DH selon diagnostic) -> Écran 2 (Soins & Spécialités) -> Écrans suivants (Lieu, Créneau, Validation).
+
+---
+
+## [Mise à Jour 6 — Nom Praticien BOUHLAL Ibrahim & Préparation Production PWA]
+**Date & Heure :** 19 Novembre 2026 à 21:05  
+**Statut :** ✅ Compilé & Prêt pour Déploiement
+
+### Réalisations :
+1. **Nom du praticien mis à jour partout :**
+   - Remplacement complet par **BOUHLAL Ibrahim** (en français, anglais, espagnol et en arabe **إبراهيم بوهلال**).
+   - Profil, cachet officiel de facturation CNSS/Mutuelle, messages WhatsApp automatiques de confirmation, notification de route ("10 min"), et écran d'accueil.
+2. **PWA & Icônes iOS/Android :**
+   - Génération des icônes standardisées : `apple-touch-icon.png` (180x180), `icon-192.png` (192x192) et `icon-512.png` (512x512 maskable).
+   - Configuration du `manifest.json` avec raccourci direct (Shortcut) pointant vers `/admin` pour que le praticien puisse lancer sa tournée en 1 clic depuis l'écran d'accueil de son smartphone.
+3. **Règles de sécurité Firestore & Storage :**
+   - `firestore.rules` : Verrouillage total de la lecture publique des données patients (rendez-vous et factures accessibles uniquement au praticien connecté).
+   - `storage.rules` : Upload sécurisé d'ordonnances (images/PDF < 10 Mo) et lecture strictement réservée au praticien.
+4. **Configuration SPA Firebase :**
+   - `firebase.json` vérifié avec redirection de toutes les routes (`**`) vers `/index.html` pour éliminer toute erreur 404 lors du rafraîchissement sur `/admin`.
+5. **Build de production :**
+   - Compilation `npm run build` effectuée avec succès dans `dist/` (service worker, cache PWA et assets minifiés).

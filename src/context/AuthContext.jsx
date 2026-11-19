@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
           const userObj = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
-            displayName: firebaseUser.displayName || 'Brahim El Mansouri',
+            displayName: firebaseUser.displayName || 'BOUHLAL Ibrahim',
             isFirebase: true
           };
           setCurrentUser(userObj);
@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
         const userObj = {
           uid: fbUser.uid,
           email: fbUser.email,
-          displayName: fbUser.displayName || 'Brahim El Mansouri',
+          displayName: fbUser.displayName || 'BOUHLAL Ibrahim',
           isFirebase: true
         };
         setCurrentUser(userObj);
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
       await new Promise(r => setTimeout(r, 400));
       const userObj = {
         email: email || 'kine@tanger.ma',
-        displayName: 'Brahim El Mansouri',
+        displayName: 'BOUHLAL Ibrahim',
         role: 'kine_admin',
         isFirebase: false,
         token: 'local-session-token-' + Date.now()

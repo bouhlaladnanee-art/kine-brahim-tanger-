@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Kiné Tanger Domicile',
         short_name: 'Kiné Tanger',
@@ -17,12 +17,39 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        scope: '/',
         icons: [
+          {
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
           {
             src: '/favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'Espace Kiné / Tournée',
+            short_name: 'Tournée Kiné',
+            description: 'Accès direct à la tournée et aux demandes du jour',
+            url: '/admin',
+            icons: [
+              {
+                src: '/icon-192.png',
+                sizes: '192x192'
+              }
+            ]
           }
         ]
       }

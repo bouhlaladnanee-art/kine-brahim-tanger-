@@ -327,7 +327,7 @@ export default function InvoiceModal({
                 </div>
                 <div className="text-right">
                   <div className="border border-dashed border-primary-300 bg-primary-50/40 p-2 rounded-lg text-center font-bold text-primary text-[9px]">
-                    Cachet & Signature<br/>Brahim El Mansouri — Kiné
+                    Cachet & Signature<br/>BOUHLAL Ibrahim — Kiné
                   </div>
                 </div>
               </div>
