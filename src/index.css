@@ -38,3 +38,19 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* Styles d'impression pour Facture / PDF */
+@media print {
+  body {
+    background: white !important;
+  }
+  .no-print, nav, header, button {
+    display: none !important;
+  }
+  #printable-invoice {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}

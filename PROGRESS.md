@@ -14,37 +14,47 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ---
 
-## [Phase 2] — Interface Patient Complète (Landing Page & Tunnel de Réservation 4 Étapes)
+## [Phase 2] — Interface Patient Complète (Landing Page & Tunnel 4 Étapes)
 **Date & Heure :** 19 Novembre 2026 à 19:42  
+**Statut :** ✅ Validé par l'utilisateur
+- Landing page rassurante avec profil de Brahim El Mansouri, tarification transparente à 200 DH, grille des spécialités et réassurance.
+- Tunnel de réservation en 4 étapes avec sélection de quartier à Tanger, capture GPS HTML5, upload d'ordonnance et confirmation WhatsApp.
+- Commit : `feat(phase-2): patient landing page, 4-step booking flow, tanger localization, gps & whatsapp confirmation`.
+
+---
+
+## [Phase 3] — Espace Kiné Admin (`/admin`), Tournée Mobile, GPS/WhatsApp/Agenda & Espace Facturation PDF
+**Date & Heure :** 19 Novembre 2026 à 19:50  
 **Statut :** ✅ Développé, Testé & Validé
 
 ### Fichiers créés / modifiés :
-- `src/utils/whatsapp.js` : Générateur d'URL WhatsApp (`wa.me`) avec encodage complet des informations de réservation (nom, téléphone, soin, quartier, date, créneau, lien GPS et ordonnance) pour confirmation instantanée en un clic.
-- `src/utils/geolocation.js` : Module de géolocalisation HTML5 pour récupérer les coordonnées GPS exactes du patient à Tanger avec gestion des erreurs et de la précision.
-- `src/services/mockStorage.js` : Store persistant (`localStorage`) respectant la structure de la collection Firestore `appointments` (`id`, `patientName`, `phone`, `careType`, `neighborhood`, `geoCoordinates`, `date`, `timeSlot`, `status: "en_attente"`, etc.). Fourni avec des rendez-vous d'exemple réalistes à Tanger (Malabata, Iberia, Marshan).
-- `src/components/patient/LandingHero.jsx` : En-tête avec avatar médical professionnel de Brahim El Mansouri, titre, bio rassurante, tarification transparente en Dirhams marocains (À partir de 200 DH / séance, paiement sur place, matériel fourni), badge de disponibilité en direct à Tanger et gros bouton CTA Corail.
-- `src/components/patient/SpecialtiesGrid.jsx` : Grille interactive des spécialités de rééducation (Post-opératoire, Mal de dos & Sciatique, Kiné respiratoire, Seniors, Kiné du sport, Autre soin). Cliquer sur une spécialité l'injecte automatiquement dans le tunnel de réservation.
-- `src/components/patient/TrustBanner.jsx` : Éléments de réassurance médicale (hygiène stricte du matériel, ponctualité, attestation pour remboursement mutuelle / CNSS) et rappel des quartiers desservis à Tanger.
-- `src/components/patient/FloatingContact.jsx` : Bouton d'urgence flottant WhatsApp direct en bas d'écran.
-- `src/components/patient/BookingFlow.jsx` : Tunnel de réservation Mobile-First en 4 étapes fluides avec barre de progression interactive :
-  1. **Étape 1 — Motif & Ordonnance :** Sélection visuelle du soin + upload photo ou caméra d'ordonnance médicale avec prévisualisation et suppression.
-  2. **Étape 2 — Localisation à Tanger :** Liste déroulante des 11 quartiers de Tanger + précisions d'adresse + bouton **"Utiliser ma position GPS actuelle"** (capture des coordonnées `latitude`/`longitude`).
-  3. **Étape 3 — Date & Créneau :** Défilement tactile des 14 prochains jours disponibles (Aujourd'hui, Demain...) + sélection de la plage horaire (Matin 9h-12h, Après-midi 14h-17h, Fin de journée 17h-20h).
-  4. **Étape 4 — Coordonnées & Validation :** Saisie du nom, téléphone marocain, remarques médicales/accès + récapitulatif clair avant validation.
-  - **Écran de Confirmation :** Message rassurant, récapitulatif complet et gros bouton vert **"Confirmer ma demande sur WhatsApp"** avec message pré-rempli.
-- `src/pages/PatientHome.jsx` : Page d'accueil intégrant la Landing, la bascule fluide vers le formulaire de réservation et le lien discret vers l'espace admin.
-- `src/App.jsx` : Intégration du composant `PatientHome`.
+- `src/utils/calendar.js` : Générateur d'événements Google Calendar et de fichiers `.ics` (iCalendar standard RFC 5545) avec pré-remplissage de l'adresse du patient à Tanger, du motif de soin et des notes.
+- `src/utils/maps.js` : Générateur de liens de guidage direct GPS pour Google Maps et Waze vers les coordonnées exactes du patient ou son quartier à Tanger.
+- `src/services/invoiceService.js` : Service de persistance et de gestion des factures et notes d'honoraires médicales (calcul des totaux, numérotation séquentielle `FACT-2026-XXX`, mentions pour remboursement CNSS / Mutuelle).
+- `src/context/AuthContext.jsx` : Contexte d'authentification pour sécuriser l'accès à l'espace praticien.
+- `src/components/admin/AdminBottomNav.jsx` : Barre de navigation fixe à 4 onglets optimisée pour une utilisation à une main sur mobile (Ma Tournée, Demandes avec badge compteur en temps réel, Factures, Historique).
+- `src/components/admin/TourTodayTab.jsx` : Onglet "Ma Tournée" affichant les rendez-vous confirmés du jour avec sélecteur de date, boutons d'action rapide (GPS Google Maps/Waze, Appel direct, WhatsApp "J'arrive dans 10 min", passage en un clic à ✅ Accompli ou ❌ Annulé/Absent).
+- `src/components/admin/RequestsTab.jsx` : Onglet "Demandes" listant les nouvelles réservations en attente avec consultation plein écran de l'ordonnance médicale, validation, ajout à l'Agenda et message de confirmation WhatsApp.
+- `src/components/admin/PrescriptionModal.jsx` : Visionneuse d'ordonnance médicale avec téléchargement.
+- `src/components/admin/InvoiceModal.jsx` : Générateur de Facture / Note d'honoraires officielle avec mise en page soignée pour impression/sauvegarde en PDF et bouton d'envoi immédiat au patient sur WhatsApp.
+- `src/components/admin/InvoicesTab.jsx` : Onglet dédié "Factures" avec suivi du chiffre d'affaires encaissé, recherche, création d'une nouvelle facture, téléchargement PDF et envoi WhatsApp.
+- `src/components/admin/HistoryTab.jsx` : Onglet "Historique" avec filtre (Tous, Accomplis, Annulés), total des honoraires perçus en DH, et bouton direct "Émettre Facture PDF" sur chaque séance accomplie.
+- `src/pages/AdminLogin.jsx` : Écran de connexion mobile sécurisé pour le kinésithérapeute.
+- `src/pages/AdminDashboard.jsx` : Tableau de bord mobile assemblant la navigation et les onglets de gestion.
+- `src/App.jsx` : Définition des routes `/admin` et `/admin/login`.
+- `src/index.css` : Règles CSS `@media print` garantissant une impression PDF nette et professionnelle sans éléments d'interface parasite.
 - `PROGRESS.md` : Mise à jour du journal de bord.
 
 ### Résumé des actions réalisées :
-1. Implémentation complète de l'expérience Patient sans friction, orientée conversion et accessibilité pour les personnes souffrantes ou peu habituées aux outils numériques.
-2. Intégration du format local marocain (Téléphone, MAD / DH, quartiers de Tanger).
-3. Test de compilation réussi (`npm run build` : 0 erreur).
-4. Démarrage du serveur local Vite sur `http://127.0.0.1:3000` pour prévisualisation immédiate.
+1. Implémentation complète de l'Espace Kiné pensé pour une utilisation en déplacement sur smartphone à Tanger.
+2. Ajout de l'Espace Facturation demandé par l'utilisateur : génération de reçus d'honoraires officiels pour mutuelle/CNSS, impression/export PDF natif et partage en 1 clic sur WhatsApp au patient.
+3. Compilation de production sans aucune erreur (`npm run build`).
 
 ### Prochaines étapes :
-- Validation de la Phase 2 par le commanditaire.
-- Lancement de la **Phase 3 : Espace Kiné (`/admin`)** :
-  - Authentification / accès praticien
-  - Barre de navigation fixe à 3 onglets (Tournée du jour, Demandes en attente avec badge compteur, Historique complet)
-  - Boutons d'action rapide : Waze / Google Maps GPS direct, Appel direct, WhatsApp "J'arrive dans 10 min", Ajout à l'Agenda Google / fichier `.ics`, validation et refus.
+- Validation de la Phase 3 par le commanditaire.
+- Lancement de la **Phase 4 : Connexion Firebase** :
+  - Configuration du SDK Firebase (plan gratuit Spark).
+  - Connexion de Firestore à la collection `appointments`.
+  - Connexion de Firebase Storage pour l'upload réel et sécurisé des photos d'ordonnances médicales.
+  - Connexion de Firebase Auth pour la protection réelle du compte praticien.
+  - Rédaction et déploiement des règles de sécurité Firestore et Storage.
