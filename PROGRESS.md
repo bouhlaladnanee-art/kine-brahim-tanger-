@@ -128,3 +128,33 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
    - **Base de données Firestore :** Base `(default)` créée et règles `firestore.rules` déployées avec succès (lecture publique des données patients bloquée).
    - **Firebase Authentication :** Authentification activée et application Web enregistrée (`Default Web App`).
    - **Clés de production :** Clés réelles de l'application Firebase injectées dans `.env` et compilées dans le build final.
+
+
+---
+
+## [Mise à Jour 7 — Migration Supabase & Résolution Écran Blanc Mobile]
+**Date & Heure :** 20 Novembre 2026 à 00:15  
+**Statut :** ✅ Déployé en production & Synchronisé GitHub
+
+### Réalisations :
+1. **Migration complète vers Supabase (`sooipvptslcxrsnremsn` - "Brahim app") :**
+   - Tables créées : `appointments`, `invoices`, `availability`.
+   - Index Postgres et triggers de mise à jour automatique créés.
+   - Bucket Storage `prescriptions` configuré (10 Mo max, images + PDF).
+   - Politiques de sécurité RLS (Row Level Security) déployées :
+     - Écriture publique des rendez-vous par les patients, lecture/modification réservée au praticien authentifié.
+     - Factures strictement privées pour le praticien.
+     - Disponibilités consultables par les patients pour la prise de rendez-vous.
+2. **Refonte des Services React (Supabase + Offline/Cache First) :**
+   - `src/services/supabase.js` : Client officiel `@supabase/supabase-js`.
+   - `src/services/appointmentService.js` : CRUD Supabase + écoute en temps réel Supabase Realtime avec fallback hors-ligne.
+   - `src/services/availabilityService.js` : Mode synchrone immédiat (élimine tout plantage de rendu Promise dans React) avec synchronisation Supabase en tâche de fond.
+   - `src/services/invoiceService.js` : Mode synchrone immédiat avec synchronisation Supabase en tâche de fond.
+   - `src/context/AuthContext.jsx` : Authentification Supabase par Email/Mot de passe et Magic Link / OTP.
+3. **Résolution du bug "Écran Blanc" sur Mobile :**
+   - Cause identifiée : les fonctions de calcul de créneaux étaient asynchrones et renvoyaient des Promesses dans le cycle de rendu React initial (`LandingHero.jsx` et `BookingFlow.jsx`).
+   - Correction : rétablissement du pattern synchrone avec hydratation progressive en arrière-plan.
+4. **Déploiement & Push Git :**
+   - Build Vite de production validé (0 erreur).
+   - Déployé en direct sur Firebase Hosting : [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app).
+   - Pushé sur GitHub : [https://github.com/bouhlaladnanee-art/kine-brahim-tanger-](https://github.com/bouhlaladnanee-art/kine-brahim-tanger-).
