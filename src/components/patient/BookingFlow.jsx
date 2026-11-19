@@ -32,11 +32,18 @@ import {
 import { getCurrentCoordinates } from '../../utils/geolocation';
 import { generatePatientWhatsAppLink } from '../../utils/whatsapp';
 import { appointmentService } from '../../services/appointmentService';
+import { availabilityService } from '../../services/availabilityService';
 
 export default function BookingFlow({ initialCareType = null, onCancel, onCompleted }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAppointment, setSubmittedAppointment] = useState(null);
+
+  // Récupération dynamique des dates réellement disponibles (configurées par le kiné)
+  const availableDates = availabilityService.getAvailableUpcomingDates(14);
+  const initialDate = availableDates.length > 0 ? availableDates[0].iso : new Date().toISOString().split('T')[0];
+  const initialSlots = availabilityService.getAvailableSlotsForDate(initialDate);
+  const initialSlotId = initialSlots.length > 0 ? initialSlots[0].id : '';
 
   // Form State
   const [formData, setFormData] = useState({
@@ -46,8 +53,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     neighborhoodId: TANGER_NEIGHBORHOODS[0].id,
     addressDetails: '',
     geoCoordinates: null,
-    date: new Date().toISOString().split('T')[0],
-    timeSlotId: TIME_SLOTS[0].id,
+    date: initialDate,
+    timeSlotId: initialSlotId,
     patientName: '',
     phone: '',
     notes: '',
@@ -58,24 +65,19 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const [gpsError, setGpsError] = useState(null);
   const [validationError, setValidationError] = useState('');
 
-  // Génération des 14 prochains jours disponibles
-  const availableDates = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    const iso = d.toISOString().split('T')[0];
-    const isToday = i === 0;
-    const isTomorrow = i === 1;
-    
-    const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  // Créneaux ouverts pour la date sélectionnée
+  const activeDateSlots = availabilityService.getAvailableSlotsForDate(formData.date);
 
-    let label = `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`;
-    let sublabel = '';
-    if (isToday) sublabel = "Aujourd'hui";
-    if (isTomorrow) sublabel = 'Demain';
-
-    return { iso, label, sublabel, dateObj: d };
-  });
+  // Synchronise le créneau horaire si la date change et que l'ancien créneau n'est pas ouvert
+  const handleSelectDate = (dateIso) => {
+    const slots = availabilityService.getAvailableSlotsForDate(dateIso);
+    const hasCurrentSlot = slots.some(s => s.id === formData.timeSlotId);
+    setFormData(prev => ({
+      ...prev,
+      date: dateIso,
+      timeSlotId: hasCurrentSlot ? prev.timeSlotId : (slots[0]?.id || '')
+    }));
+  };
 
   // Gestion de l'upload de photo d'ordonnance
   const handlePrescriptionUpload = (e) => {
@@ -557,95 +559,131 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 Choisissez votre date et votre créneau
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                Séances disponibles du lundi au samedi.
+                Seuls les créneaux effectivement ouverts par le praticien sont disponibles.
               </p>
             </div>
 
-            {/* Défilement horizontal des dates */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span>Date de la séance</span>
-              </label>
-              <div className="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
-                {availableDates.map(d => {
-                  const isSelected = formData.date === d.iso;
-                  return (
-                    <button
-                      key={d.iso}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, date: d.iso })}
-                      className={`
-                        shrink-0 w-24 py-3 px-2 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1
-                        ${isSelected
-                          ? 'border-primary bg-primary text-white shadow-soft font-bold'
-                          : 'border-slate-200 bg-white hover:border-primary-200 text-text-main'
-                        }
-                      `}
-                    >
-                      {d.sublabel ? (
-                        <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
-                          {d.sublabel}
-                        </span>
-                      ) : (
-                        <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
-                          {d.label.split(' ')[0]}
-                        </span>
-                      )}
-                      <span className="text-base font-extrabold leading-none">
-                        {d.dateObj.getDate()}
-                      </span>
-                      <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
-                        {d.label.split(' ')[2]}
-                      </span>
-                    </button>
-                  );
-                })}
+            {availableDates.length === 0 ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-center space-y-3">
+                <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
+                <div className="space-y-1">
+                  <h3 className="font-bold text-sm text-text-main">
+                    Aucun créneau ouvert pour les prochains jours
+                  </h3>
+                  <p className="text-xs text-text-muted">
+                    Brahim n'a pas encore ouvert ses disponibilités sur cette période. Vous pouvez le contacter directement sur WhatsApp pour convenir d'une séance sur mesure.
+                  </p>
+                </div>
+                <a
+                  href={`https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent("Bonjour Brahim, je souhaite savoir quand vous avez des disponibilités pour une séance de kiné à domicile à Tanger.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#25D366] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <span>Demander une disponibilité sur WhatsApp</span>
+                </a>
               </div>
-            </div>
-
-            {/* Plages horaires */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-primary" />
-                <span>Plage horaire souhaitée</span>
-              </label>
-              <div className="grid grid-cols-1 gap-2.5">
-                {TIME_SLOTS.map(slot => {
-                  const isSelected = formData.timeSlotId === slot.id;
-                  return (
-                    <div
-                      key={slot.id}
-                      onClick={() => setFormData({ ...formData, timeSlotId: slot.id })}
-                      className={`
-                        p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
-                        ${isSelected
-                          ? 'border-primary bg-primary-50/40 ring-2 ring-primary/20 shadow-soft'
-                          : 'border-slate-100 bg-white hover:border-slate-200'
-                        }
-                      `}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-text-main">{slot.label}</span>
-                          <span className="text-xs font-semibold text-primary bg-primary-100/60 px-2 py-0.5 rounded-md">
-                            {slot.hours}
+            ) : (
+              <>
+                {/* Défilement horizontal des dates ouvertes */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <span>Date disponible</span>
+                  </label>
+                  <div className="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
+                    {availableDates.map(d => {
+                      const isSelected = formData.date === d.iso;
+                      return (
+                        <button
+                          key={d.iso}
+                          type="button"
+                          onClick={() => handleSelectDate(d.iso)}
+                          className={`
+                            shrink-0 w-24 py-3 px-2 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1
+                            ${isSelected
+                              ? 'border-primary bg-primary text-white shadow-soft font-bold'
+                              : 'border-slate-200 bg-white hover:border-primary-200 text-text-main'
+                            }
+                          `}
+                        >
+                          {d.sublabel ? (
+                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
+                              {d.sublabel}
+                            </span>
+                          ) : (
+                            <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
+                              {d.label.split(' ')[0]}
+                            </span>
+                          )}
+                          <span className="text-base font-extrabold leading-none">
+                            {d.dateObj.getDate()}
                           </span>
-                        </div>
-                        <p className="text-xs text-text-muted mt-0.5">{slot.description}</p>
-                      </div>
+                          <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
+                            {d.label.split(' ')[2]}
+                          </span>
+                          <span className={`text-[9px] font-semibold ${isSelected ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                            {d.availableSlotsCount} créneau{d.availableSlotsCount > 1 ? 'x' : ''}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-white' : 'border border-slate-200'}`}>
-                        {isSelected && <Check className="w-3.5 h-3.5" />}
-                      </div>
+                {/* Plages horaires disponibles pour la date sélectionnée */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span>Créneaux ouverts pour cette date</span>
+                  </label>
+
+                  {activeDateSlots.length === 0 ? (
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center text-xs text-text-muted">
+                      Aucun créneau ouvert pour cette date. Veuillez sélectionner une autre date ci-dessus.
                     </div>
-                  );
-                })}
-              </div>
-              <p className="text-[11px] text-text-muted italic">
-                * Le kiné vous confirmera l'heure de passage exacte dans la plage sélectionnée.
-              </p>
-            </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2.5">
+                      {activeDateSlots.map(slot => {
+                        const isSelected = formData.timeSlotId === slot.id;
+                        return (
+                          <div
+                            key={slot.id}
+                            onClick={() => setFormData({ ...formData, timeSlotId: slot.id })}
+                            className={`
+                              p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
+                              ${isSelected
+                                ? 'border-primary bg-primary-50/40 ring-2 ring-primary/20 shadow-soft'
+                                : 'border-slate-100 bg-white hover:border-slate-200'
+                              }
+                            `}
+                          >
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-text-main">{slot.label}</span>
+                                <span className="text-xs font-semibold text-primary bg-primary-100/60 px-2 py-0.5 rounded-md">
+                                  {slot.hours}
+                                </span>
+                              </div>
+                              <p className="text-xs text-text-muted mt-0.5">{slot.description}</p>
+                            </div>
+
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-white' : 'border border-slate-200'}`}>
+                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-text-muted italic">
+                    * Le kiné vous confirmera l'heure exacte de son passage dans la plage horaire sélectionnée.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         )}
 

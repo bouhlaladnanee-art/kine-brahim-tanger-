@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import Button from '../common/Button';
 import { PRACTITIONER_INFO } from '../../data/constants';
+import { availabilityService } from '../../services/availabilityService';
 
 export default function LandingHero({ onStartBooking }) {
+  const nextAvailability = availabilityService.getNextAvailabilityText();
   return (
     <div className="relative overflow-hidden bg-white rounded-b-3xl border-b border-slate-100 shadow-sm">
       {/* Fond décoratif subtil aux couleurs vert sauge et corail */}
@@ -21,11 +23,11 @@ export default function LandingHero({ onStartBooking }) {
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent-50 rounded-full blur-2xl -z-10 -translate-x-1/4 translate-y-1/4 opacity-60" />
 
       <div className="p-5 sm:p-6 space-y-5">
-        {/* Badge disponibilité Tanger */}
+        {/* Badge disponibilité Tanger en temps réel */}
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-2 bg-primary-50 text-primary-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-primary-100/80">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Disponible aujourd'hui à Tanger
+            <span>{nextAvailability}</span>
           </span>
           <span className="text-[11px] font-medium text-text-muted flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-accent" /> Tanger intra-muros

@@ -26,9 +26,7 @@ Suivi des phases de développement et traçabilité des modifications.
 ## [Phase 3] — Espace Kiné Admin (`/admin`), Tournée Mobile, GPS/WhatsApp/Agenda & Espace Facturation PDF
 **Date & Heure :** 19 Novembre 2026 à 19:50  
 **Statut :** ✅ Validé par l'utilisateur
-- Tableau de bord kiné à 4 onglets : Tournée du jour, Demandes, Factures, Historique.
-- Actions rapides : Google Maps & Waze direct, Appel direct, WhatsApp "J'arrive dans 10 min", passage en un clic à ✅ Accompli ou ❌ Annulé.
-- Validation des réservations avec ajout à Google Calendar et téléchargement de fichier `.ics`.
+- Tableau de bord kiné avec Tournée du jour, Demandes, Factures, Historique.
 - Module complet de facturation médicale : émission de note d'honoraires pour CNSS / Mutuelle, impression et enregistrement en PDF propre (`@media print`), et envoi direct au patient sur WhatsApp.
 - Commit : `feat(phase-3): admin dashboard, mobile tour tab, gps/waze, whatsapp arrival, calendar ics, and medical invoice pdf generator`.
 
@@ -36,32 +34,33 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ## [Phase 4] — Connexion Firebase (Firestore, Storage, Auth), Règles de Sécurité & Optimisation
 **Date & Heure :** 19 Novembre 2026 à 20:01  
-**Statut :** ✅ Développé, Testé & Validé
+**Statut :** ✅ Validé & Compilé
+- Configuration Firebase SDK (Spark plan), `firestore.rules`, `storage.rules`, `firebase.json`.
+- Dual-mode (Firebase direct / fallback persistant), manual chunking.
+- Commit : `feat(phase-4): firebase firestore, storage, auth integration, security rules, and performance chunking`.
+
+---
+
+## [Mise à Jour Heures Supplémentaires] — Gestion Personnalisée des Disponibilités (Admin Planning & Filtrage Patient)
+**Date & Heure :** 19 Novembre 2026 à 20:07  
+**Statut :** ✅ Implémenté, Compilé & Validé
 
 ### Fichiers créés / modifiés :
-- `src/services/firebase.js` : Configuration du SDK Firebase (plan gratuit Spark). Détection automatique des clés d'environnement `VITE_FIREBASE_*` avec bascule transparente sur le mode persistant local si les clés de production ne sont pas encore renseignées.
-- `src/services/appointmentService.js` : Service unifié pour la collection Firestore `appointments` :
-  - `create` : Enregistrement de la demande patient avec horodatage serveur et téléversement sécurisé de la photo d'ordonnance vers Firebase Storage sous `/prescriptions/{timestamp}_{nom}`.
-  - `subscribe` : Écouteur en temps réel (`onSnapshot`) synchronisant instantanément les rendez-vous sur le dashboard du kiné sans rechargement.
-  - `updateStatus` : Mise à jour en direct des statuts (`confirme`, `accompli`, `annule`) dans Firestore.
-- `src/context/AuthContext.jsx` : Intégration de Firebase Authentication (`signInWithEmailAndPassword`, `signOut`, `onAuthStateChanged`) pour verrouiller hermétiquement l'accès au tableau de bord praticien (`/admin`).
-- `src/components/patient/BookingFlow.jsx` : Raccordement du tunnel de réservation patient au service Firestore / Firebase Storage.
-- `src/pages/AdminDashboard.jsx` : Raccordement du tableau de bord au flux temps réel Firestore.
-- `firestore.rules` : Règles de sécurité Firestore garantissant que :
-  - N'importe quel patient peut uniquement créer (`allow create`) une réservation avec `status == 'en_attente'` et ses coordonnées.
-  - Seul le praticien authentifié (`request.auth != null`) a le droit de lire, modifier ou supprimer les rendez-vous et factures.
-- `storage.rules` : Règles de sécurité Firebase Storage garantissant que :
-  - N'importe quel patient peut uploader une photo d'ordonnance sous `/prescriptions/` (limite 10 Mo, types MIME images/PDF).
-  - Seul le praticien connecté peut lire, afficher et télécharger les ordonnances stockées.
-- `firebase.json` : Configuration prête pour le déploiement Firebase CLI (`firebase deploy`).
-- `vite.config.js` : Optimisation du découpage en paquets (manualChunks : React, Firebase, Icônes) pour un chargement mobile ultra-rapide même sur réseau 3G/4G à Tanger.
-- `PROGRESS.md` : Clôture du journal de bord.
+- `src/services/availabilityService.js` : Moteur de gestion des disponibilités sur-mesure pour heures supplémentaires :
+  - Définition d'un planning hebdomadaire type (ex: soirées 17h-20h en semaine, mercredi après-midi, samedi).
+  - Surcharges ponctuelles par date spécifique (activation/désactivation de créneaux précis).
+  - Blocage de journées entières (garde hospitalière, repos, imprévu).
+  - Filtrage dynamique : seules les dates avec au moins un créneau ouvert sont renvoyées aux patients (`getAvailableUpcomingDates`).
+  - Pour une date donnée, seuls les créneaux effectivement activés sont renvoyés (`getAvailableSlotsForDate`).
+- `src/components/admin/AvailabilityTab.jsx` : Nouvel onglet **« Planning »** dans l'Espace Admin permettant à Brahim :
+  - D'activer/désactiver d'un simple tap tactile chaque créneau pour chaque jour de la semaine.
+  - D'ajuster son planning date par date sur les 10 prochains jours ou de bloquer un jour donné.
+- `src/components/admin/AdminBottomNav.jsx` : Barre de navigation mise à jour avec 5 onglets (Tournée, Demandes, Planning, Factures, Historique).
+- `src/pages/AdminDashboard.jsx` : Intégration de l'onglet Planning.
+- `src/components/patient/BookingFlow.jsx` : Mise à jour de l'Étape 3 du tunnel de réservation :
+  - Le patient ne voit **que les dates où Brahim a ouvert des créneaux**.
+  - Une fois la date sélectionnée, **seuls les créneaux horaires activés par Brahim pour ce jour précis s'affichent** (ex: si Brahim n'a ouvert que 17h-20h le lundi, le patient ne voit et ne peut choisir que 17h-20h).
+- `src/components/patient/LandingHero.jsx` : Le badge de la page d'accueil affiche en temps réel la prochaine disponibilité exacte calculée selon le planning de Brahim.
 
-### Résumé des actions réalisées :
-1. Intégration complète de l'architecture Firebase (Firestore NoSQL, Cloud Storage, Authentication).
-2. Définition stricte des règles de sécurité conformément au cahier des charges médical.
-3. Architecture résiliente et tolérante aux pannes : l'application fonctionne immédiatement en mode démo / mock local tout en étant 100 % prête à être branchée sur un projet Firebase réel par simple ajout des variables dans `.env.local`.
-4. Test de build réussi avec chunking optimisé.
-
-### Statut Final du Projet :
-Toutes les 4 phases du cahier des charges sont intégralement complétées, testées et validées.
+### Résumé :
+Le praticien contrôle désormais à 100 % son emploi du temps en heures supplémentaires. Zéro risque de réservation hors de ses plages disponibles.

@@ -10,6 +10,7 @@ import {
 import AdminBottomNav from '../components/admin/AdminBottomNav';
 import TourTodayTab from '../components/admin/TourTodayTab';
 import RequestsTab from '../components/admin/RequestsTab';
+import AvailabilityTab from '../components/admin/AvailabilityTab';
 import InvoicesTab from '../components/admin/InvoicesTab';
 import HistoryTab from '../components/admin/HistoryTab';
 import InvoiceModal from '../components/admin/InvoiceModal';
@@ -122,6 +123,10 @@ export default function AdminDashboard() {
             onUpdateStatus={handleUpdateStatus}
             onOpenInvoice={handleGenerateInvoiceFromApt}
           />
+        )}
+
+        {activeTab === 'planning' && (
+          <AvailabilityTab />
         )}
 
         {activeTab === 'factures' && (
