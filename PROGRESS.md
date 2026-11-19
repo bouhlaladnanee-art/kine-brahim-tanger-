@@ -123,3 +123,8 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
    - `firebase.json` avec bloc `auth`, `firestore`, `storage` et `hosting` avec redirection `**` vers `/index.html` pour éliminer toute erreur 404 sur `/admin`.
 6. **Build de production :**
    - Compilation `npm run build` exécutée avec succès dans `dist/` (service worker, cache PWA et assets minifiés).
+7. **Déploiement en Ligne Réussi :**
+   - **Application Web & PWA :** En ligne sur [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app).
+   - **Base de données Firestore :** Base `(default)` créée et règles `firestore.rules` déployées avec succès (lecture publique des données patients bloquée).
+   - **Firebase Authentication :** Authentification activée et application Web enregistrée (`Default Web App`).
+   - **Clés de production :** Clés réelles de l'application Firebase injectées dans `.env` et compilées dans le build final.
