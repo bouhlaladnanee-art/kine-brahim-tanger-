@@ -13,6 +13,7 @@
     "deploy:app": "firebase deploy --only hosting,firestore"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "firebase": "^13.4.0",

@@ -1,59 +1,61 @@
-// Service Unifié pour la gestion des Rendez-vous (Firestore / Firebase Storage / Fallback Mock)
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
-} from 'firebase/storage';
-import { db, storage, isFirebaseConfigured } from './firebase';
+// Service Unifié pour la gestion des Rendez-vous (Supabase / Fallback Mock)
+import { supabase, isSupabaseConfigured } from './supabase';
 import { mockStorage } from './mockStorage';
 
 export const appointmentService = {
   /**
-   * Crée un nouveau rendez-vous dans Firestore (avec upload d'ordonnance sur Storage si fournie)
+   * Crée un nouveau rendez-vous dans Supabase (avec upload d'ordonnance sur Storage si fournie)
    */
   create: async (appointmentData, prescriptionFile = null) => {
     let prescriptionUrl = null;
     let prescriptionFileName = null;
 
-    if (isFirebaseConfigured && db) {
+    if (isSupabaseConfigured && supabase) {
       try {
-        // Upload sur Firebase Storage si une ordonnance est jointe
-        if (prescriptionFile && storage) {
+        // Upload sur Supabase Storage si une ordonnance est jointe
+        if (prescriptionFile) {
           const safeName = prescriptionFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          const fileRef = ref(storage, `prescriptions/${Date.now()}_${safeName}`);
-          const uploadResult = await uploadBytes(fileRef, prescriptionFile);
-          prescriptionUrl = await getDownloadURL(uploadResult.ref);
+          const filePath = `${Date.now()}_${safeName}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('prescriptions')
+            .upload(filePath, prescriptionFile);
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from('prescriptions')
+            .getPublicUrl(filePath);
+
+          prescriptionUrl = urlData?.publicUrl || null;
           prescriptionFileName = prescriptionFile.name;
         }
 
-        const docRef = await addDoc(collection(db, 'appointments'), {
-          ...appointmentData,
-          prescriptionUrl: prescriptionUrl || appointmentData.prescriptionUrl || null,
-          prescriptionFileName: prescriptionFileName || appointmentData.prescriptionFileName || null,
-          status: 'en_attente',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+        const { data, error } = await supabase
+          .from('appointments')
+          .insert([{
+            patient_name: appointmentData.patientName || appointmentData.patient_name,
+            patient_phone: appointmentData.patientPhone || appointmentData.patient_phone,
+            patient_address: appointmentData.patientAddress || appointmentData.patient_address,
+            care_type: appointmentData.careType || appointmentData.care_type,
+            care_type_title: appointmentData.careTypeTitle || appointmentData.care_type_title,
+            date: appointmentData.date,
+            time_slot: appointmentData.timeSlot || appointmentData.time_slot,
+            time_slot_hours: appointmentData.timeSlotHours || appointmentData.time_slot_hours,
+            notes: appointmentData.notes,
+            prescription_url: prescriptionUrl || appointmentData.prescriptionUrl || null,
+            prescription_file_name: prescriptionFileName || appointmentData.prescriptionFileName || null,
+            status: 'en_attente',
+            language: appointmentData.language || 'fr',
+          }])
+          .select()
+          .single();
 
-        return {
-          id: docRef.id,
-          ...appointmentData,
-          prescriptionUrl,
-          prescriptionFileName,
-          status: 'en_attente',
-        };
+        if (error) throw error;
+
+        // Normaliser les clés pour compatibilité avec le reste de l'app
+        return normalizeAppointment(data);
       } catch (error) {
-        console.error("Erreur Firestore lors de la création, bascule locale :", error);
+        console.error('Erreur Supabase lors de la création, bascule locale :', error);
         return mockStorage.create(appointmentData);
       }
     } else {
@@ -62,35 +64,42 @@ export const appointmentService = {
   },
 
   /**
-   * Écoute en temps réel les rendez-vous (Firestore onSnapshot)
+   * Écoute en temps réel les rendez-vous (Supabase Realtime)
    */
   subscribe: (callback) => {
-    if (isFirebaseConfigured && db) {
-      try {
-        const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const list = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            // Conversion timestamps Firestore
-            date: doc.data().date || new Date().toISOString().split('T')[0],
-          }));
-          callback(list);
-        }, (error) => {
-          console.warn("Erreur écouteur Firestore, utilisation des données locales :", error);
-          callback(mockStorage.getAll());
+    if (isSupabaseConfigured && supabase) {
+      // Chargement initial
+      supabase
+        .from('appointments')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (error) {
+            console.warn('Erreur Supabase, utilisation des données locales :', error);
+            callback(mockStorage.getAll());
+          } else {
+            callback((data || []).map(normalizeAppointment));
+          }
         });
-        return unsubscribe;
-      } catch (err) {
-        callback(mockStorage.getAll());
-        return () => {};
-      }
+
+      // Écoute temps réel
+      const channel = supabase
+        .channel('appointments-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+          supabase
+            .from('appointments')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .then(({ data }) => {
+              callback((data || []).map(normalizeAppointment));
+            });
+        })
+        .subscribe();
+
+      return () => supabase.removeChannel(channel);
     } else {
       callback(mockStorage.getAll());
-      // Rechargement local si des modifications surviennent
-      const interval = setInterval(() => {
-        callback(mockStorage.getAll());
-      }, 3000);
+      const interval = setInterval(() => callback(mockStorage.getAll()), 3000);
       return () => clearInterval(interval);
     }
   },
@@ -99,16 +108,17 @@ export const appointmentService = {
    * Met à jour le statut d'un rendez-vous ('confirme', 'accompli', 'annule')
    */
   updateStatus: async (id, newStatus) => {
-    if (isFirebaseConfigured && db) {
+    if (isSupabaseConfigured && supabase) {
       try {
-        const docRef = doc(db, 'appointments', id);
-        await updateDoc(docRef, {
-          status: newStatus,
-          updatedAt: serverTimestamp(),
-        });
+        const { error } = await supabase
+          .from('appointments')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', id);
+
+        if (error) throw error;
         return true;
       } catch (error) {
-        console.error("Erreur mise à jour Firestore :", error);
+        console.error('Erreur mise à jour Supabase :', error);
         mockStorage.updateStatus(id, newStatus);
         return false;
       }
@@ -118,3 +128,27 @@ export const appointmentService = {
     }
   }
 };
+
+/**
+ * Normalise les clés snake_case Supabase → camelCase pour l'app
+ */
+function normalizeAppointment(row) {
+  return {
+    id: row.id,
+    patientName: row.patient_name,
+    patientPhone: row.patient_phone,
+    patientAddress: row.patient_address,
+    careType: row.care_type,
+    careTypeTitle: row.care_type_title,
+    date: row.date,
+    timeSlot: row.time_slot,
+    timeSlotHours: row.time_slot_hours,
+    notes: row.notes,
+    prescriptionUrl: row.prescription_url,
+    prescriptionFileName: row.prescription_file_name,
+    status: row.status,
+    language: row.language,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
