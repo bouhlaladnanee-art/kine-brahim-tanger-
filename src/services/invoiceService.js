@@ -1,4 +1,4 @@
-// Service de gestion des factures - Supabase + fallback localStorage
+// Service de gestion et persistance des factures (Synchrone localStorage + Sync Supabase en arrière-plan)
 import { supabase, isSupabaseConfigured } from './supabase';
 
 const INVOICE_STORAGE_KEY = 'kine_tanger_invoices_v1';
@@ -41,105 +41,114 @@ const INITIAL_SAMPLE_INVOICES = [
 function normalizeInvoice(row) {
   return {
     id: row.id,
-    invoiceNumber: row.invoice_number,
-    patientName: row.patient_name,
-    patientPhone: row.patient_phone,
-    patientAddress: row.patient_address,
-    careTypeTitle: row.care_type_title,
-    sessionsCount: row.sessions_count,
-    unitPriceMAD: Number(row.unit_price_mad),
-    totalMAD: Number(row.total_mad),
-    date: row.date,
-    status: row.status,
-    paymentMethod: row.payment_method,
+    invoiceNumber: row.invoice_number || row.invoiceNumber,
+    patientName: row.patient_name || row.patientName,
+    patientPhone: row.patient_phone || row.patientPhone,
+    patientAddress: row.patient_address || row.patientAddress,
+    careTypeTitle: row.care_type_title || row.careTypeTitle,
+    sessionsCount: Number(row.sessions_count || row.sessionsCount) || 1,
+    unitPriceMAD: Number(row.unit_price_mad || row.unitPriceMAD) || 200,
+    totalMAD: Number(row.total_mad || row.totalMAD) || ((Number(row.sessions_count || row.sessionsCount) || 1) * (Number(row.unit_price_mad || row.unitPriceMAD) || 200)),
+    date: row.date || new Date().toISOString().split('T')[0],
+    status: row.status || 'en_attente',
+    paymentMethod: row.payment_method || row.paymentMethod,
     notes: row.notes,
-    createdAt: row.created_at,
+    createdAt: row.created_at || row.createdAt || new Date().toISOString(),
   };
 }
 
-export const invoiceService = {
-  getAll: async () => {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('invoices')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-        return (data || []).map(normalizeInvoice);
-      } catch (err) {
-        console.warn('Supabase invoices error, fallback local :', err);
-      }
-    }
-    // Fallback localStorage
-    try {
-      const data = localStorage.getItem(INVOICE_STORAGE_KEY);
-      if (!data) {
-        localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(INITIAL_SAMPLE_INVOICES));
-        return INITIAL_SAMPLE_INVOICES;
-      }
-      return JSON.parse(data);
-    } catch {
+function getLocalInvoices() {
+  try {
+    const data = localStorage.getItem(INVOICE_STORAGE_KEY);
+    if (!data) {
+      localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(INITIAL_SAMPLE_INVOICES));
       return INITIAL_SAMPLE_INVOICES;
     }
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : INITIAL_SAMPLE_INVOICES;
+  } catch {
+    return INITIAL_SAMPLE_INVOICES;
+  }
+}
+
+function saveLocalInvoices(list) {
+  try {
+    localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+// Synchronisation initiale silencieuse depuis Supabase en tâche de fond
+if (isSupabaseConfigured && supabase) {
+  supabase
+    .from('invoices')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .then(({ data, error }) => {
+      if (!error && Array.isArray(data) && data.length > 0) {
+        saveLocalInvoices(data.map(normalizeInvoice));
+      }
+    })
+    .catch(() => {});
+}
+
+export const invoiceService = {
+  getAll: () => {
+    return getLocalInvoices();
   },
 
-  create: async (invoiceData) => {
-    const list = await invoiceService.getAll();
+  create: (invoiceData) => {
+    const list = getLocalInvoices();
     const count = list.length + 1;
     const invoiceNumber = invoiceData.invoiceNumber || `FACT-2026-${String(count).padStart(3, '0')}`;
+    const sessions = Number(invoiceData.sessionsCount) || 1;
+    const unitPrice = Number(invoiceData.unitPriceMAD) || 200;
 
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('invoices')
-          .insert([{
-            invoice_number: invoiceNumber,
-            patient_name: invoiceData.patientName,
-            patient_phone: invoiceData.patientPhone,
-            patient_address: invoiceData.patientAddress,
-            care_type_title: invoiceData.careTypeTitle,
-            sessions_count: Number(invoiceData.sessionsCount) || 1,
-            unit_price_mad: Number(invoiceData.unitPriceMAD) || 200,
-            date: invoiceData.date || new Date().toISOString().split('T')[0],
-            status: invoiceData.status || 'en_attente',
-            payment_method: invoiceData.paymentMethod,
-            notes: invoiceData.notes,
-          }])
-          .select()
-          .single();
-        if (error) throw error;
-        return normalizeInvoice(data);
-      } catch (err) {
-        console.warn('Supabase invoice create error, fallback local :', err);
-      }
-    }
-    // Fallback localStorage
     const newInvoice = {
       ...invoiceData,
       id: 'inv-' + Date.now().toString(36),
       invoiceNumber,
-      totalMAD: (Number(invoiceData.sessionsCount) || 1) * (Number(invoiceData.unitPriceMAD) || 200),
+      sessionsCount: sessions,
+      unitPriceMAD: unitPrice,
+      totalMAD: sessions * unitPrice,
       createdAt: new Date().toISOString(),
     };
+
     const updated = [newInvoice, ...list];
-    try { localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(updated)); } catch {}
+    saveLocalInvoices(updated);
+
+    // Sync en arrière-plan vers Supabase
+    if (isSupabaseConfigured && supabase) {
+      supabase
+        .from('invoices')
+        .insert([{
+          invoice_number: invoiceNumber,
+          patient_name: newInvoice.patientName,
+          patient_phone: newInvoice.patientPhone,
+          patient_address: newInvoice.patientAddress,
+          care_type_title: newInvoice.careTypeTitle,
+          sessions_count: sessions,
+          unit_price_mad: unitPrice,
+          date: newInvoice.date || new Date().toISOString().split('T')[0],
+          status: newInvoice.status || 'en_attente',
+          payment_method: newInvoice.paymentMethod,
+          notes: newInvoice.notes,
+        }])
+        .then(() => {})
+        .catch(() => {});
+    }
+
     return newInvoice;
   },
 
-  delete: async (id) => {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { error } = await supabase.from('invoices').delete().eq('id', id);
-        if (error) throw error;
-        return true;
-      } catch (err) {
-        console.warn('Supabase invoice delete error, fallback local :', err);
-      }
-    }
-    const list = await invoiceService.getAll();
+  delete: (id) => {
+    const list = getLocalInvoices();
     const updated = list.filter(i => i.id !== id);
-    try { localStorage.setItem(INVOICE_STORAGE_KEY, JSON.stringify(updated)); } catch {}
+    saveLocalInvoices(updated);
+
+    if (isSupabaseConfigured && supabase) {
+      supabase.from('invoices').delete().eq('id', id).then(() => {}).catch(() => {});
+    }
+
     return updated;
   }
 };

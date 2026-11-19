@@ -1,4 +1,4 @@
-// Service de gestion des disponibilités - Supabase + fallback localStorage
+// Service de gestion des disponibilités - sync (localStorage) + sync Supabase en arrière-plan
 import { supabase, isSupabaseConfigured } from './supabase';
 import { TIME_SLOTS } from '../data/constants';
 
@@ -15,54 +15,15 @@ const DEFAULT_WEEKLY_TEMPLATE = {
   0: [],
 };
 
-async function getConfigFromSupabase() {
-  if (!isSupabaseConfigured || !supabase) return null;
-  try {
-    const { data, error } = await supabase
-      .from('availability')
-      .select('*')
-      .eq('id', AVAILABILITY_ROW_ID)
-      .single();
-    if (error || !data) return null;
-    return {
-      weeklyTemplate: data.weekly_template || DEFAULT_WEEKLY_TEMPLATE,
-      customDates: data.custom_dates || {},
-      blockedDates: data.blocked_dates || [],
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function saveConfigToSupabase(config) {
-  if (!isSupabaseConfigured || !supabase) return false;
-  try {
-    const { error } = await supabase
-      .from('availability')
-      .update({
-        weekly_template: config.weeklyTemplate,
-        custom_dates: config.customDates,
-        blocked_dates: config.blockedDates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', AVAILABILITY_ROW_ID);
-    return !error;
-  } catch {
-    return false;
-  }
-}
+// ─── Helpers localStorage (sync) ─────────────────────────────────────────────
 
 function getConfigFromLocal() {
   try {
     const data = localStorage.getItem(AVAILABILITY_STORAGE_KEY);
     if (!data) {
-      const initialConfig = {
-        weeklyTemplate: DEFAULT_WEEKLY_TEMPLATE,
-        customDates: {},
-        blockedDates: []
-      };
-      localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(initialConfig));
-      return initialConfig;
+      const initial = { weeklyTemplate: DEFAULT_WEEKLY_TEMPLATE, customDates: {}, blockedDates: [] };
+      localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(initial));
+      return initial;
     }
     return JSON.parse(data);
   } catch {
@@ -71,44 +32,78 @@ function getConfigFromLocal() {
 }
 
 function saveConfigToLocal(config) {
+  try { localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(config)); } catch {}
+}
+
+// ─── Sync Supabase en arrière-plan au démarrage ───────────────────────────────
+
+if (isSupabaseConfigured && supabase) {
+  supabase
+    .from('availability')
+    .select('*')
+    .eq('id', AVAILABILITY_ROW_ID)
+    .single()
+    .then(({ data }) => {
+      if (data) {
+        const config = {
+          weeklyTemplate: data.weekly_template || DEFAULT_WEEKLY_TEMPLATE,
+          customDates: data.custom_dates || {},
+          blockedDates: data.blocked_dates || [],
+        };
+        saveConfigToLocal(config);
+      }
+    })
+    .catch(() => {}); // silencieux si offline
+}
+
+// ─── Save async vers Supabase ─────────────────────────────────────────────────
+
+async function persistToSupabase(config) {
+  if (!isSupabaseConfigured || !supabase) return;
   try {
-    localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(config));
+    await supabase
+      .from('availability')
+      .update({
+        weekly_template: config.weeklyTemplate,
+        custom_dates: config.customDates,
+        blocked_dates: config.blockedDates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', AVAILABILITY_ROW_ID);
   } catch {}
 }
 
-export const availabilityService = {
-  getConfig: async () => {
-    const remote = await getConfigFromSupabase();
-    if (remote) return remote;
-    return getConfigFromLocal();
-  },
+// ─── Service public (tout synchrone côté composants) ─────────────────────────
 
-  saveConfig: async (config) => {
-    const saved = await saveConfigToSupabase(config);
-    if (!saved) saveConfigToLocal(config);
+export const availabilityService = {
+  getConfig: () => getConfigFromLocal(),
+
+  saveConfig: (config) => {
+    saveConfigToLocal(config);
+    persistToSupabase(config); // fire-and-forget
     return config;
   },
 
-  toggleWeeklySlot: async (dayIndex, slotId) => {
-    const config = await availabilityService.getConfig();
-    const currentSlots = config.weeklyTemplate[dayIndex] || [];
-    config.weeklyTemplate[dayIndex] = currentSlots.includes(slotId)
-      ? currentSlots.filter(s => s !== slotId)
-      : [...currentSlots, slotId];
+  toggleWeeklySlot: (dayIndex, slotId) => {
+    const config = availabilityService.getConfig();
+    const current = config.weeklyTemplate[dayIndex] || [];
+    config.weeklyTemplate[dayIndex] = current.includes(slotId)
+      ? current.filter(s => s !== slotId)
+      : [...current, slotId];
     return availabilityService.saveConfig(config);
   },
 
-  toggleCustomDateSlot: async (dateISO, slotId) => {
-    const config = await availabilityService.getConfig();
-    const currentSlots = availabilityService.getSlotsForDate(config, dateISO).map(s => s.id);
-    config.customDates[dateISO] = currentSlots.includes(slotId)
-      ? currentSlots.filter(s => s !== slotId)
-      : [...currentSlots, slotId];
+  toggleCustomDateSlot: (dateISO, slotId) => {
+    const config = availabilityService.getConfig();
+    const current = availabilityService.getAvailableSlotsForDate(dateISO).map(s => s.id);
+    config.customDates[dateISO] = current.includes(slotId)
+      ? current.filter(s => s !== slotId)
+      : [...current, slotId];
     return availabilityService.saveConfig(config);
   },
 
-  toggleBlockDate: async (dateISO) => {
-    const config = await availabilityService.getConfig();
+  toggleBlockDate: (dateISO) => {
+    const config = availabilityService.getConfig();
     const blocked = config.blockedDates || [];
     config.blockedDates = blocked.includes(dateISO)
       ? blocked.filter(d => d !== dateISO)
@@ -116,33 +111,27 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  getSlotsForDate: (config, dateISO) => {
+  getAvailableSlotsForDate: (dateISO) => {
+    const config = availabilityService.getConfig();
     if (config.blockedDates?.includes(dateISO)) return [];
     if (config.customDates?.[dateISO] !== undefined) {
-      return TIME_SLOTS.filter(slot => config.customDates[dateISO].includes(slot.id));
+      return TIME_SLOTS.filter(s => config.customDates[dateISO].includes(s.id));
     }
-    const dayOfWeek = new Date(dateISO + 'T00:00:00').getDay();
-    return TIME_SLOTS.filter(slot => (config.weeklyTemplate[dayOfWeek] || []).includes(slot.id));
+    const day = new Date(dateISO + 'T00:00:00').getDay();
+    return TIME_SLOTS.filter(s => (config.weeklyTemplate[day] || []).includes(s.id));
   },
 
-  getAvailableSlotsForDate: async (dateISO) => {
-    const config = await availabilityService.getConfig();
-    return availabilityService.getSlotsForDate(config, dateISO);
-  },
-
-  getAvailableUpcomingDates: async (daysAhead = 14) => {
-    const config = await availabilityService.getConfig();
-    const availableDates = [];
+  getAvailableUpcomingDates: (daysAhead = 14) => {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-
+    const result = [];
     for (let i = 0; i < daysAhead; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const iso = d.toISOString().split('T')[0];
-      const slots = availabilityService.getSlotsForDate(config, iso);
+      const slots = availabilityService.getAvailableSlotsForDate(iso);
       if (slots.length > 0) {
-        availableDates.push({
+        result.push({
           iso,
           label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`,
           sublabel: i === 0 ? "Aujourd'hui" : i === 1 ? 'Demain' : '',
@@ -152,15 +141,15 @@ export const availabilityService = {
         });
       }
     }
-    return availableDates;
+    return result;
   },
 
-  getNextAvailabilityText: async () => {
-    const upcoming = await availabilityService.getAvailableUpcomingDates(7);
-    if (upcoming.length === 0) return "Sur rendez-vous préalable";
+  getNextAvailabilityText: () => {
+    const upcoming = availabilityService.getAvailableUpcomingDates(7);
+    if (upcoming.length === 0) return 'Sur rendez-vous préalable';
     const first = upcoming[0];
     if (first.sublabel === "Aujourd'hui") return `Aujourd'hui dès ${first.slots[0].hours.split('–')[0].trim()}`;
     if (first.sublabel === 'Demain') return `Demain dès ${first.slots[0].hours.split('–')[0].trim()}`;
     return `${first.label} (${first.slots.map(s => s.hours).join(' ou ')})`;
-  }
+  },
 };
