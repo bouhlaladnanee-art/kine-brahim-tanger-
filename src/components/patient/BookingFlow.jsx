@@ -33,8 +33,10 @@ import { getCurrentCoordinates } from '../../utils/geolocation';
 import { generatePatientWhatsAppLink } from '../../utils/whatsapp';
 import { appointmentService } from '../../services/appointmentService';
 import { availabilityService } from '../../services/availabilityService';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function BookingFlow({ initialCareType = null, onCancel, onCompleted }) {
+  const { t, isRTL, currentLanguage } = useLanguage();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAppointment, setSubmittedAppointment] = useState(null);
@@ -233,7 +235,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
       timeSlotLabel: submittedAppointment.timeSlotLabel,
       hasPrescription: !!submittedAppointment.prescriptionUrl,
       coordinates: submittedAppointment.geoCoordinates,
-      kinePhone: PRACTITIONER_INFO.whatsappNumber
+      kinePhone: PRACTITIONER_INFO.whatsappNumber,
+      language: currentLanguage
     });
 
     return (
@@ -246,13 +249,13 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
 
           <div className="space-y-1">
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-              Demande enregistrée avec succès
+              {t('confirmedBadge')}
             </span>
             <h2 className="text-2xl font-black text-text-main">
-              Rendez-vous en attente
+              {t('confirmedTitle')}
             </h2>
             <p className="text-xs text-text-muted max-w-xs mx-auto leading-relaxed">
-              Brahim a bien reçu votre demande. Pour accélérer la validation, confirmez-la directement sur WhatsApp :
+              {t('confirmedDesc')}
             </p>
           </div>
 
@@ -289,10 +292,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               className="w-full inline-flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20BD5A] text-white py-4 px-6 rounded-2xl font-extrabold text-base shadow-lg shadow-emerald-500/25 active:scale-[0.98] transition-all"
             >
               <MessageCircle className="w-6 h-6 fill-current" />
-              <span>Confirmer ma demande sur WhatsApp</span>
+              <span>{t('btnConfirmWA')}</span>
             </a>
             <p className="text-[11px] text-text-muted">
-              Ouvre WhatsApp avec votre récapitulatif pré-rempli sans rien avoir à réécrire.
+              {t('waAutoMessageNotice')}
             </p>
           </div>
         </div>
@@ -304,7 +307,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             fullWidth
             onClick={onCancel}
           >
-            Retour à l'accueil
+            {t('btnBackHome')}
           </Button>
         </div>
       </div>
@@ -322,18 +325,18 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           onClick={handlePrev}
           className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text-main transition-colors py-1 px-2 rounded-lg"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{step === 1 ? 'Annuler' : 'Précédent'}</span>
+          <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+          <span>{step === 1 ? t('btnCancel') : t('btnPrev')}</span>
         </button>
 
         <span className="text-xs font-bold text-primary">
-          Étape {step} sur 4
+          {isRTL ? `المرحلة ${step} من 4` : `Étape ${step} sur 4`}
         </span>
 
         <span className="text-xs text-text-muted font-medium">
-          {step === 1 && 'Motif'}
+          {step === 1 && (t('tabRequests') || 'Motif')}
           {step === 2 && 'Lieu'}
-          {step === 3 && 'Créneau'}
+          {step === 3 && (t('tabPlanning') || 'Créneau')}
           {step === 4 && 'Contact'}
         </span>
       </div>
@@ -360,10 +363,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           <div className="space-y-5 animate-in fade-in duration-200">
             <div>
               <h2 className="text-lg font-black text-text-main">
-                Quel est le motif de votre soin ?
+                {t('step1Title')}
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                Sélectionnez le type de rééducation souhaité à votre domicile.
+                {t('step1Subtitle')}
               </p>
             </div>
 
@@ -471,10 +474,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           <div className="space-y-5 animate-in fade-in duration-200">
             <div>
               <h2 className="text-lg font-black text-text-main">
-                Où se déroule la séance à Tanger ?
+                {t('step2Title')}
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                Précisez votre quartier et votre adresse pour guider le praticien.
+                {t('step2Subtitle')}
               </p>
             </div>
 
@@ -483,16 +486,16 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-primary flex items-center gap-1.5">
                   <Navigation className="w-4 h-4 text-accent" />
-                  Géolocalisation précise
+                  {t('gpsTitle')}
                 </span>
                 {gpsSuccess && (
                   <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Check className="w-3 h-3" /> Coordonnées enregistrées
+                    <Check className="w-3 h-3" /> {t('gpsSuccess')}
                   </span>
                 )}
               </div>
               <p className="text-[11px] text-text-muted leading-relaxed">
-                Activez votre GPS pour que le kiné puisse vous localiser directement via Google Maps ou Waze sans se perdre dans votre ruelle.
+                {t('gpsHint')}
               </p>
               
               <Button
@@ -503,7 +506,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 loading={gpsLoading}
                 icon={Navigation}
               >
-                {gpsSuccess ? "Mettre à jour ma position GPS" : "Utiliser ma position GPS actuelle"}
+                {gpsSuccess ? t('gpsUpdateButton') : t('gpsButton')}
               </Button>
 
               {gpsError && (
@@ -692,10 +695,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-200">
             <div>
               <h2 className="text-lg font-black text-text-main">
-                Vos coordonnées de contact
+                {t('step4Title')}
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                Ces informations permettront à Brahim de vous contacter pour confirmer la séance.
+                {t('step4Subtitle')}
               </p>
             </div>
 
@@ -704,12 +707,12 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               <div className="space-y-1">
                 <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                   <User className="w-4 h-4 text-primary" />
-                  <span>Nom complet du patient <span className="text-rose-500">*</span></span>
+                  <span>{t('patientNameLabel')} <span className="text-rose-500">*</span></span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex : Karim El Alami"
+                  placeholder={t('patientNamePlaceholder')}
                   value={formData.patientName}
                   onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
                   className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -720,12 +723,12 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               <div className="space-y-1">
                 <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-primary" />
-                  <span>Numéro de téléphone marocain (WhatsApp) <span className="text-rose-500">*</span></span>
+                  <span>{t('phoneLabel')} <span className="text-rose-500">*</span></span>
                 </label>
                 <input
                   type="tel"
                   required
-                  placeholder="Ex : 06 12 34 56 78"
+                  placeholder={t('phonePlaceholder')}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -736,11 +739,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               <div className="space-y-1">
                 <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                   <FileText className="w-4 h-4 text-primary" />
-                  <span>Remarques éventuelles (pathologie, étage sans ascenseur, etc.)</span>
+                  <span>{t('notesLabel')}</span>
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Ex : Douleur aiguë au réveil, béquilles nécessaires, sonnette au nom de..."
+                  placeholder={t('notesPlaceholder')}
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
@@ -751,13 +754,13 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             {/* Récapitulatif avant validation */}
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2 text-xs">
               <span className="font-bold text-text-main block">
-                📋 Récapitulatif de votre demande :
+                {t('summaryTitle')}
               </span>
               <div className="space-y-1 text-text-muted">
-                <p>• <strong className="text-text-main">Soin :</strong> {currentCare ? currentCare.title : ''}</p>
-                <p>• <strong className="text-text-main">Lieu :</strong> {currentNeighborhood ? currentNeighborhood.name : ''}</p>
-                <p>• <strong className="text-text-main">Créneau :</strong> {formData.date} ({currentSlot ? currentSlot.label : ''})</p>
-                <p>• <strong className="text-text-main">Tarif indicatif :</strong> {PRACTITIONER_INFO.basePriceMAD} DH (paiement sur place)</p>
+                <p>• <strong className="text-text-main">{t('waCare')} :</strong> {currentCare ? currentCare.title : ''}</p>
+                <p>• <strong className="text-text-main">{t('waNeighborhood')} :</strong> {currentNeighborhood ? currentNeighborhood.name : ''}</p>
+                <p>• <strong className="text-text-main">{t('waSlot')} :</strong> {formData.date} ({currentSlot ? currentSlot.label : ''})</p>
+                <p>• <strong className="text-text-main">{t('transparentPricing')} :</strong> {PRACTITIONER_INFO.basePriceMAD} DH ({t('onSitePayment')})</p>
                 {formData.geoCoordinates && (
                   <p className="text-emerald-700 font-semibold">• Coordonnées GPS Tanger incluses</p>
                 )}
@@ -779,10 +782,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             fullWidth
             onClick={handleNext}
             icon={ArrowRight}
-            iconPosition="right"
+            iconPosition={isRTL ? "left" : "right"}
             className="shadow-md shadow-accent/20"
           >
-            Continuer
+            {t('btnContinue')}
           </Button>
         ) : (
           <Button
@@ -792,10 +795,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             onClick={handleSubmit}
             loading={isSubmitting}
             icon={Check}
-            iconPosition="right"
+            iconPosition={isRTL ? "left" : "right"}
             className="shadow-lg shadow-accent/25"
           >
-            Valider ma réservation
+            {t('btnSubmit')}
           </Button>
         )}
       </div>

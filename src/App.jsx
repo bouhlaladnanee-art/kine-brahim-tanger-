@@ -5,25 +5,28 @@ import PatientHome from './pages/PatientHome';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <MobileContainer>
-          <Routes>
-            {/* Espace Patient */}
-            <Route path="/" element={<PatientHome />} />
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <MobileContainer>
+            <Routes>
+              {/* Espace Patient */}
+              <Route path="/" element={<PatientHome />} />
 
-            {/* Espace Kiné Admin */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+              {/* Espace Kiné Admin */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
 
-            {/* Redirection fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </MobileContainer>
-      </BrowserRouter>
-    </AuthProvider>
+              {/* Redirection fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </MobileContainer>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

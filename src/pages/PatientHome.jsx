@@ -8,8 +8,10 @@ import TrustBanner from '../components/patient/TrustBanner';
 import FloatingContact from '../components/patient/FloatingContact';
 import BookingFlow from '../components/patient/BookingFlow';
 import { PRACTITIONER_INFO } from '../data/constants';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PatientHome() {
+  const { t } = useLanguage();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState(null);
 
@@ -68,7 +70,7 @@ export default function PatientHome() {
                 className="inline-flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors py-1 px-2.5 rounded-lg border border-slate-200 bg-white shadow-xs"
               >
                 <Lock className="w-3.5 h-3.5 text-primary" />
-                <span>Espace Praticien (Admin)</span>
+                <span>{t('adminSpace')}</span>
               </Link>
             </div>
           </footer>

@@ -41,26 +41,33 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ---
 
-## [Mise à Jour Heures Supplémentaires] — Gestion Personnalisée des Disponibilités (Admin Planning & Filtrage Patient)
+## [Mise à Jour 1 — Heures Supplémentaires] — Gestion Personnalisée des Disponibilités (Admin Planning & Filtrage Patient)
 **Date & Heure :** 19 Novembre 2026 à 20:07  
+**Statut :** ✅ Validé & Compilé
+- Service `availabilityService.js` et nouvel onglet « Planning » dans `/admin`.
+- Filtrage strict dans le tunnel de réservation : les patients ne peuvent réserver QUE sur les dates et créneaux ouverts par Brahim.
+- Commit : `feat(availability): custom practitioner hours, admin planning manager, and strict patient slot filtering`.
+
+---
+
+## [Mise à Jour 2 — Internationalisation 4 Langues & Audit Produit] — Support FR, AR, EN, ES & Mode RTL
+**Date & Heure :** 19 Novembre 2026 à 20:18  
 **Statut :** ✅ Implémenté, Compilé & Validé
 
 ### Fichiers créés / modifiés :
-- `src/services/availabilityService.js` : Moteur de gestion des disponibilités sur-mesure pour heures supplémentaires :
-  - Définition d'un planning hebdomadaire type (ex: soirées 17h-20h en semaine, mercredi après-midi, samedi).
-  - Surcharges ponctuelles par date spécifique (activation/désactivation de créneaux précis).
-  - Blocage de journées entières (garde hospitalière, repos, imprévu).
-  - Filtrage dynamique : seules les dates avec au moins un créneau ouvert sont renvoyées aux patients (`getAvailableUpcomingDates`).
-  - Pour une date donnée, seuls les créneaux effectivement activés sont renvoyés (`getAvailableSlotsForDate`).
-- `src/components/admin/AvailabilityTab.jsx` : Nouvel onglet **« Planning »** dans l'Espace Admin permettant à Brahim :
-  - D'activer/désactiver d'un simple tap tactile chaque créneau pour chaque jour de la semaine.
-  - D'ajuster son planning date par date sur les 10 prochains jours ou de bloquer un jour donné.
-- `src/components/admin/AdminBottomNav.jsx` : Barre de navigation mise à jour avec 5 onglets (Tournée, Demandes, Planning, Factures, Historique).
-- `src/pages/AdminDashboard.jsx` : Intégration de l'onglet Planning.
-- `src/components/patient/BookingFlow.jsx` : Mise à jour de l'Étape 3 du tunnel de réservation :
-  - Le patient ne voit **que les dates où Brahim a ouvert des créneaux**.
-  - Une fois la date sélectionnée, **seuls les créneaux horaires activés par Brahim pour ce jour précis s'affichent** (ex: si Brahim n'a ouvert que 17h-20h le lundi, le patient ne voit et ne peut choisir que 17h-20h).
-- `src/components/patient/LandingHero.jsx` : Le badge de la page d'accueil affiche en temps réel la prochaine disponibilité exacte calculée selon le planning de Brahim.
+- `src/i18n/translations.js` : Dictionnaire complet et naturel pour 4 langues : Français (🇫🇷), Arabe (🇲🇦), Anglais (🇬🇧) et Espagnol (🇪🇸). Traduction de l'en-tête, du profil, des spécialités, des tarifs, de la réassurance, des 4 étapes du tunnel de réservation, des messages WhatsApp pré-remplis et de l'espace d'administration.
+- `src/context/LanguageContext.jsx` : Contexte d'internationalisation avec détection et persistance (`localStorage`), bascule instantanée sans rechargement, application de l'attribut `dir="rtl"` et de la classe `rtl-arabic` lorsque la langue arabe est sélectionnée.
+- `src/components/common/LanguageSwitcher.jsx` : Sélecteur de langue tactile avec drapeaux, accessible en haut de l'application dans l'en-tête sticky.
+- `src/components/common/Header.jsx` : Intégration du sélecteur de langue 4 drapeaux.
+- `src/components/patient/LandingHero.jsx` : Textes et CTA multilingues.
+- `src/components/patient/SpecialtiesGrid.jsx` : Noms des soins et descriptions traduits.
+- `src/components/patient/TrustBanner.jsx` : Points de réassurance traduits.
+- `src/components/patient/BookingFlow.jsx` : Étapes, formulaire de contact et récapitulatif traduits, messages WhatsApp générés dans la langue du patient.
+- `src/components/patient/FloatingContact.jsx` : Message d'urgence WhatsApp localisé.
+- `src/utils/whatsapp.js` : Génération des messages WhatsApp dans la langue du patient (arabe, anglais, espagnol, français).
+- `index.html` & `src/index.css` : Chargement de la police arabe *Cairo* et gestion de l'affichage RTL.
+- `src/App.jsx` : Enrobage par `LanguageProvider`.
+- `PROGRESS.md` : Mise à jour du journal de bord.
 
 ### Résumé :
-Le praticien contrôle désormais à 100 % son emploi du temps en heures supplémentaires. Zéro risque de réservation hors de ses plages disponibles.
+L'application est désormais parfaitement adaptée au contexte cosmopolite de Tanger (Marocains arabophones, francophones, résidents espagnols et expatriés/touristes anglophones).

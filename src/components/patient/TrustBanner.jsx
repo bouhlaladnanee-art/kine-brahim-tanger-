@@ -1,30 +1,32 @@
 import React from 'react';
 import { 
-  CheckCircle2, 
-  MapPin, 
-  Sparkles, 
-  Clock3, 
   ShieldCheck, 
-  FileText 
+  Clock3, 
+  FileText, 
+  Sparkles, 
+  MapPin 
 } from 'lucide-react';
 import { TANGER_NEIGHBORHOODS } from '../../data/constants';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function TrustBanner() {
+  const { t } = useLanguage();
+
   const points = [
     {
       icon: ShieldCheck,
-      title: "Hygiène & Sécurité",
-      desc: "Matériel désinfecté avant et après chaque séance à domicile."
+      title: t('trustHygiene'),
+      desc: t('trustHygieneDesc')
     },
     {
       icon: Clock3,
-      title: "Ponctualité garantie",
-      desc: "Notification WhatsApp 10 min avant l'arrivée du praticien."
+      title: t('trustPunctuality'),
+      desc: t('trustPunctualityDesc')
     },
     {
       icon: FileText,
-      title: "Reçus & Mutuelle",
-      desc: "Attestation fournie pour remboursement CNSS / Mutuelle privée."
+      title: t('trustReceipts'),
+      desc: t('trustReceiptsDesc')
     }
   ];
 
@@ -33,7 +35,7 @@ export default function TrustBanner() {
       <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-card space-y-4">
         <h3 className="text-sm font-extrabold text-text-main flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-accent" />
-          Pourquoi choisir nos soins à domicile ?
+          {t('whyUsTitle')}
         </h3>
 
         <div className="space-y-3">
@@ -57,7 +59,7 @@ export default function TrustBanner() {
         <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center gap-1.5 text-xs font-bold text-text-main mb-2">
             <MapPin className="w-3.5 h-3.5 text-accent" />
-            <span>Quartiers couverts à Tanger :</span>
+            <span>{t('coveredZones')}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {TANGER_NEIGHBORHOODS.slice(0, 8).map((q) => (
@@ -69,7 +71,7 @@ export default function TrustBanner() {
               </span>
             ))}
             <span className="text-[11px] bg-primary-50 text-primary-700 px-2 py-1 rounded-lg font-semibold">
-              + toute la ville
+              {t('allCity')}
             </span>
           </div>
         </div>
