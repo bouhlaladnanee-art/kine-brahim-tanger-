@@ -13,7 +13,7 @@ import RequestsTab from '../components/admin/RequestsTab';
 import InvoicesTab from '../components/admin/InvoicesTab';
 import HistoryTab from '../components/admin/HistoryTab';
 import InvoiceModal from '../components/admin/InvoiceModal';
-import { mockStorage } from '../services/mockStorage';
+import { appointmentService } from '../services/appointmentService';
 import { useAuth } from '../context/AuthContext';
 import { PRACTITIONER_INFO } from '../data/constants';
 
@@ -32,18 +32,16 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Chargement des rendez-vous
-  const loadAppointments = () => {
-    setAppointments(mockStorage.getAll());
-  };
-
+  // Abonnement en temps réel aux rendez-vous (Firestore onSnapshot / Local)
   useEffect(() => {
-    loadAppointments();
+    const unsubscribe = appointmentService.subscribe((list) => {
+      setAppointments(list);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const handleUpdateStatus = (id, newStatus) => {
-    mockStorage.updateStatus(id, newStatus);
-    loadAppointments();
+  const handleUpdateStatus = async (id, newStatus) => {
+    await appointmentService.updateStatus(id, newStatus);
   };
 
   const handleLogout = async () => {

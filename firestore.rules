@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper : Vérifie si l'utilisateur est authentifié en tant que praticien
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Collection des Rendez-vous
+    match /appointments/{appointmentId} {
+      // Les patients peuvent UNIQUEMENT créer une demande de réservation
+      // avec statut initial 'en_attente' et données obligatoires
+      allow create: if request.resource.data.status == 'en_attente'
+                    && request.resource.data.patientName is string
+                    && request.resource.data.patientName.size() > 0
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 9
+                    && request.resource.data.date is string
+                    && request.resource.data.neighborhood is string;
+
+      // SEUL le kinésithérapeute authentifié peut lire, modifier le statut et supprimer
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // Collection des Factures & Notes d'honoraires
+    match /invoices/{invoiceId} {
+      // Strictement réservé au praticien connecté
+      allow read, write: if isAuthenticated();
+    }
+
+    // Interdiction par défaut pour tout autre document
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

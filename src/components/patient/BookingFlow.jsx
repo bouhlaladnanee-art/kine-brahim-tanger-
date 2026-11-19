@@ -31,7 +31,7 @@ import {
 } from '../../data/constants';
 import { getCurrentCoordinates } from '../../utils/geolocation';
 import { generatePatientWhatsAppLink } from '../../utils/whatsapp';
-import { mockStorage } from '../../services/mockStorage';
+import { appointmentService } from '../../services/appointmentService';
 
 export default function BookingFlow({ initialCareType = null, onCancel, onCompleted }) {
   const [step, setStep] = useState(1);
@@ -198,8 +198,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         notes: formData.notes.trim(),
       };
 
-      // Sauvegarde dans le mock storage (qui prépare le schéma Firestore)
-      const saved = mockStorage.create(appointmentRecord);
+      // Sauvegarde dans Firestore (ou fallback local) avec upload Storage de l'ordonnance
+      const saved = await appointmentService.create(appointmentRecord, formData.prescriptionFile);
       setSubmittedAppointment(saved);
       setIsSubmitting(false);
 
