@@ -358,6 +358,16 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           </div>
         )}
 
+        {/* Bannière d'aide directe pour les personnes âgées */}
+        <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4 text-emerald-600" />
+            <span className="font-semibold text-text-main">
+              Besoin d'aide ? Appelez au <a href={`tel:${PRACTITIONER_INFO.phone}`} className="font-bold text-emerald-700 underline">{PRACTITIONER_INFO.phoneDisplay}</a>
+            </span>
+          </div>
+        </div>
+
         {/* ---------------- ÉTAPE 1 : MOTIF & ORDONNANCE ---------------- */}
         {step === 1 && (
           <div className="space-y-5 animate-in fade-in duration-200">

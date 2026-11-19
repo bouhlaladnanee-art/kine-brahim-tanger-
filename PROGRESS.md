@@ -61,16 +61,33 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ## [Mise à Jour 3 — Bouche-à-Oreille WhatsApp, Mode Urgence & Exercices Post-Séance]
 **Date & Heure :** 19 Novembre 2026 à 20:23  
+**Statut :** ✅ Validé & Compilé
+- Bouton de recommandation virale WhatsApp sur la fiche.
+- Encart d'urgence pour appel direct lors de douleurs vives.
+- Modale d'envoi d'exercices post-séance sur WhatsApp depuis l'espace admin.
+- Commit : `feat(viral-share): whatsapp recommendation button, emergency acute pain call, and post-session exercises`.
+
+---
+
+## [Mise à Jour 4 — Refonte Ergonomique Seniors & Fiche Médicale de Présentation]
+**Date & Heure :** 19 Novembre 2026 à 20:43  
 **Statut :** ✅ Implémenté, Compilé & Validé
 
 ### Fichiers créés / modifiés :
 - `src/components/patient/LandingHero.jsx` :
-  - **Bouton de partage viral WhatsApp :** *"Recommander Brahim à un proche (WhatsApp)"* ouvrant WhatsApp avec un texte de recommandation prêt à l'emploi et le lien du mini-site.
-  - **Mode Urgence / Douleur aiguë (Point D) :** Encart d'appel direct immédiat pour les blocages sévères sans obligation de remplir le formulaire.
-- `src/components/admin/ExercisesModal.jsx` : Modale d'exercices post-séance (Point B) permettant à Brahim de sélectionner des exercices doux et d'envoyer une fiche de suivi personnalisée par WhatsApp au patient après sa consultation.
-- `src/components/admin/TourTodayTab.jsx` : Bouton direct d'envoi des exercices post-séance sur chaque séance terminée.
-- `src/i18n/translations.js` : Traductions complètes du partage, de l'urgence et des exercices dans les 4 langues (FR, AR, EN, ES).
+  - Transformation en **Fiche Médicale de Présentation Officielle (Carte de Visite Digitale)** :
+    - Sceau officiel et badge *"Praticien de Santé Diplômé • Tanger"*.
+    - **Numéro marocain en très grand (`06 61 00 00 00`)** dans un encart sombre proéminent.
+    - Deux gros boutons d'action immédiate : **« Appel téléphonique »** et **« WhatsApp (Message ou Vocal) »**.
+    - **Anti-stress digital pour les seniors :** Mention claire *"Paiement sur place en espèces après la séance • Aucune carte bancaire requise sur le site"*.
+    - Bouton d'accès au formulaire simple : *"Choisir ma date et réserver en ligne (2 minutes)"*.
+    - Bouton de recommandation virale WhatsApp.
+- `src/components/patient/BookingFlow.jsx` :
+  - Formulaire épuré type "Fiche papier aérée".
+  - Ajout d'une bannière d'assistance permanente avec rappel du numéro de téléphone cliquable pour ne jamais bloquer un patient âgé.
+  - Grandes touches tactiles (hauteur 60px+), contrastes renforcés et typographie agrandie.
+- `src/i18n/translations.js` : Traduction complète des nouvelles mentions dans les 4 langues (FR, AR, EN, ES).
 - `PROGRESS.md` : Mise à jour du journal de bord.
 
-### Architecture Web & Zéro Téléchargement :
-Confirmation de l'architecture : l'application est un **mini-site web instantané accessible par simple lien**. Les clients n'ont strictement rien à télécharger (pas d'App Store, pas de Play Store, aucun compte). Seul le kiné peut, s'il le souhaite, installer un raccourci sur son propre téléphone.
+### Résumé :
+L'interface est désormais dépouillée de tout aspect "logiciel complexe" intimidant. Elle offre une clarté absolue : un praticien de confiance, un numéro visible en un coup d'œil, et deux options limpides (appel/vocal direct ou formulaire en 2 minutes).
