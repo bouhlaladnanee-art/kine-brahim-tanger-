@@ -71,23 +71,30 @@ Suivi des phases de développement et traçabilité des modifications.
 
 ## [Mise à Jour 4 — Refonte Ergonomique Seniors & Fiche Médicale de Présentation]
 **Date & Heure :** 19 Novembre 2026 à 20:43  
+**Statut :** ✅ Validé & Compilé
+- Sceau officiel, badge praticien, numéro marocain en très grand (`06 61 00 00 00`), 2 boutons d'appel/vocal direct, et formulaire aéré.
+- Commit : `feat(ux-overhaul): senior-friendly official medical calling card, prominent phone display, and paper-like simplified booking steps`.
+
+---
+
+## [Mise à Jour 5 — Séparation Stricte des Écrans, Précision Tarifaire & Suppression Durée]
+**Date & Heure :** 19 Novembre 2026 à 20:53  
 **Statut :** ✅ Implémenté, Compilé & Validé
 
-### Fichiers créés / modifiés :
+### Fichiers modifiés :
+- `src/pages/PatientHome.jsx` :
+  - **Séparation stricte des écrans :** La page d'accueil se termine net après la Fiche de Présentation Médicale et le bouton « Prendre rendez-vous ».
+  - Suppression du bloc des spécialités et du trust banner empilés en bas de la même page.
+  - Dès que le patient clique sur « Prendre rendez-vous », la fiche de présentation disparaît et l'écran bascule immédiatement sur la **page dédiée aux Soins et Spécialités** (Étape 1).
 - `src/components/patient/LandingHero.jsx` :
-  - Transformation en **Fiche Médicale de Présentation Officielle (Carte de Visite Digitale)** :
-    - Sceau officiel et badge *"Praticien de Santé Diplômé • Tanger"*.
-    - **Numéro marocain en très grand (`06 61 00 00 00`)** dans un encart sombre proéminent.
-    - Deux gros boutons d'action immédiate : **« Appel téléphonique »** et **« WhatsApp (Message ou Vocal) »**.
-    - **Anti-stress digital pour les seniors :** Mention claire *"Paiement sur place en espèces après la séance • Aucune carte bancaire requise sur le site"*.
-    - Bouton d'accès au formulaire simple : *"Choisir ma date et réserver en ligne (2 minutes)"*.
-    - Bouton de recommandation virale WhatsApp.
+  - **Affichage tarifaire exact :** « À partir de 200 DH / séance ».
+  - **Précision obligatoire ajoutée juste en dessous :** `* Le tarif peut changer en fonction du diagnostic.`
+  - **Suppression complète de la durée :** Le badge « Durée : 45 à 60 min » a été retiré.
 - `src/components/patient/BookingFlow.jsx` :
-  - Formulaire épuré type "Fiche papier aérée".
-  - Ajout d'une bannière d'assistance permanente avec rappel du numéro de téléphone cliquable pour ne jamais bloquer un patient âgé.
-  - Grandes touches tactiles (hauteur 60px+), contrastes renforcés et typographie agrandie.
-- `src/i18n/translations.js` : Traduction complète des nouvelles mentions dans les 4 langues (FR, AR, EN, ES).
+  - Rappel dans le récapitulatif de l'Étape 4 et sur la confirmation : `À partir de 200 DH (sur place) • Selon diagnostic`.
+- `src/i18n/translations.js` :
+  - Mise à jour de la mention dans les 4 langues (FR, AR, EN, ES).
 - `PROGRESS.md` : Mise à jour du journal de bord.
 
 ### Résumé :
-L'interface est désormais dépouillée de tout aspect "logiciel complexe" intimidant. Elle offre une clarté absolue : un praticien de confiance, un numéro visible en un coup d'œil, et deux options limpides (appel/vocal direct ou formulaire en 2 minutes).
+Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pure + Numéro + Tarif à partir de 200 DH selon diagnostic) -> Écran 2 (Soins & Spécialités) -> Écrans suivants (Lieu, Créneau, Validation).

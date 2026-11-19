@@ -279,8 +279,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </div>
             <div className="flex justify-between items-center">
               <span className="text-text-muted">Tarif indicatif :</span>
-              <span className="font-bold text-accent">{PRACTITIONER_INFO.basePriceMAD} DH (sur place)</span>
+              <span className="font-bold text-accent">À partir de {PRACTITIONER_INFO.basePriceMAD} DH (sur place)</span>
             </div>
+            <p className="text-[10px] text-slate-500 italic text-right pt-0.5">
+              * {t('priceNoticeDiagnostic')}
+            </p>
           </div>
 
           {/* GROS BOUTON VERT WHATSAPP */}
@@ -770,7 +773,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 <p>• <strong className="text-text-main">{t('waCare')} :</strong> {currentCare ? currentCare.title : ''}</p>
                 <p>• <strong className="text-text-main">{t('waNeighborhood')} :</strong> {currentNeighborhood ? currentNeighborhood.name : ''}</p>
                 <p>• <strong className="text-text-main">{t('waSlot')} :</strong> {formData.date} ({currentSlot ? currentSlot.label : ''})</p>
-                <p>• <strong className="text-text-main">{t('transparentPricing')} :</strong> {PRACTITIONER_INFO.basePriceMAD} DH ({t('onSitePayment')})</p>
+                <p>• <strong className="text-text-main">{t('transparentPricing')} :</strong> {t('startingAt')} {PRACTITIONER_INFO.basePriceMAD} DH ({t('onSitePayment')}) <span className="text-[10px] text-slate-500 italic">({t('priceNoticeDiagnostic')})</span></p>
                 {formData.geoCoordinates && (
                   <p className="text-emerald-700 font-semibold">• Coordonnées GPS Tanger incluses</p>
                 )}

@@ -1,29 +1,25 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, Heart, Shield, Award } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import Header from '../components/common/Header';
 import LandingHero from '../components/patient/LandingHero';
-import SpecialtiesGrid from '../components/patient/SpecialtiesGrid';
-import TrustBanner from '../components/patient/TrustBanner';
-import FloatingContact from '../components/patient/FloatingContact';
 import BookingFlow from '../components/patient/BookingFlow';
+import FloatingContact from '../components/patient/FloatingContact';
 import { PRACTITIONER_INFO } from '../data/constants';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function PatientHome() {
   const { t } = useLanguage();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [selectedSpecialty, setSelectedSpecialty] = useState(null);
 
-  const handleStartBooking = (specialtyId = null) => {
-    setSelectedSpecialty(specialtyId);
+  const handleStartBooking = () => {
     setIsBookingOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCloseBooking = () => {
     setIsBookingOpen(false);
-    setSelectedSpecialty(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -32,44 +28,37 @@ export default function PatientHome() {
       <Header
         showBack={isBookingOpen}
         onBack={handleCloseBooking}
-        title={isBookingOpen ? "Réservation à Domicile" : PRACTITIONER_INFO.name}
-        subtitle={isBookingOpen ? "Tanger • Étape par étape" : "Kiné à Domicile • Tanger"}
+        title={isBookingOpen ? t('specialtiesTitle') : PRACTITIONER_INFO.name}
+        subtitle={isBookingOpen ? "Tanger • Étape 1 sur 4" : t('appTitle')}
       />
 
-      {/* Affichage conditionnel : Tunnel de réservation OU Landing Page */}
+      {/* Pages distinctes : SOIT la Fiche de présentation, SOIT le Formulaire par étapes */}
       {isBookingOpen ? (
         <BookingFlow
-          initialCareType={selectedSpecialty}
           onCancel={handleCloseBooking}
           onCompleted={(apt) => {
             console.log("Nouvelle réservation effectuée :", apt);
           }}
         />
       ) : (
-        <div className="flex-1 flex flex-col pb-16 space-y-2">
-          {/* Hero & Profil */}
-          <LandingHero onStartBooking={() => handleStartBooking()} />
+        /* PAGE 1 UNIQUE : FICHE DE PRÉSENTATION MÉDICALE OFFICIELLE */
+        <div className="flex-1 flex flex-col justify-between">
+          <LandingHero onStartBooking={handleStartBooking} />
 
-          {/* Grille des soins et motifs */}
-          <SpecialtiesGrid onSelectSpecialty={(id) => handleStartBooking(id)} />
-
-          {/* Bannière de réassurance & quartiers */}
-          <TrustBanner />
-
-          {/* Bouton d'action flottant d'urgence */}
+          {/* Bouton d'urgence flottant */}
           <FloatingContact />
 
-          {/* Footer discret avec accès Espace Kiné (/admin) */}
-          <footer className="mt-8 p-6 text-center border-t border-slate-100 space-y-3 bg-white/50">
-            <p className="text-xs text-text-muted">
+          {/* Footer discret avec lien Espace Kiné (/admin) */}
+          <footer className="p-4 text-center border-t border-slate-100 bg-white/50 space-y-2">
+            <p className="text-[11px] text-text-muted">
               © {new Date().getFullYear()} {PRACTITIONER_INFO.name} — Kinésithérapie à domicile à Tanger.
             </p>
-            <div className="flex items-center justify-center gap-4 text-xs">
+            <div>
               <Link
                 to="/admin"
-                className="inline-flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors py-1 px-2.5 rounded-lg border border-slate-200 bg-white shadow-xs"
+                className="inline-flex items-center gap-1.5 text-slate-400 hover:text-primary transition-colors text-[11px] py-1 px-2.5 rounded-lg border border-slate-200 bg-white shadow-xs"
               >
-                <Lock className="w-3.5 h-3.5 text-primary" />
+                <Lock className="w-3 h-3 text-primary" />
                 <span>{t('adminSpace')}</span>
               </Link>
             </div>

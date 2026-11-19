@@ -143,24 +143,20 @@ export default function LandingHero({ onStartBooking }) {
         {/* CARTE TARIFAIRE TRANSPARENTE ET RASSURANTE (ANTI-STRESS)      */}
         {/* ------------------------------------------------------------- */}
         <div className="bg-primary-50/50 p-4 rounded-3xl border border-primary-200/70 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <div>
-              <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">
-                {t('transparentPricing')}
+          <div>
+            <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">
+              {t('transparentPricing')}
+            </span>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-sm font-bold text-slate-500">{t('startingAt')}</span>
+              <span className="text-3xl font-black text-text-main">
+                {PRACTITIONER_INFO.basePriceMAD} DH
               </span>
-              <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-3xl font-black text-text-main">
-                  {PRACTITIONER_INFO.basePriceMAD} DH
-                </span>
-                <span className="text-xs text-text-muted font-bold">/ {t('perSession')}</span>
-              </div>
+              <span className="text-xs text-text-muted font-bold">/ {t('perSession')}</span>
             </div>
-
-            <div className="text-right">
-              <span className="inline-block bg-white text-primary text-[10px] font-black px-2.5 py-1 rounded-lg border border-primary-200 shadow-xs">
-                {t('durationInfo')}
-              </span>
-            </div>
+            <p className="text-xs text-primary-800 mt-1 font-semibold">
+              * {t('priceNoticeDiagnostic')}
+            </p>
           </div>
 
           {/* 3 Garanties écrites en clair pour les patients */}
