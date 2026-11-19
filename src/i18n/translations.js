@@ -22,6 +22,12 @@ export const TRANSLATIONS = {
     durationInfo: "Durée : 45 à 60 min",
     ctaBook: "Prendre rendez-vous en ligne",
     ctaSubtext: "Réservation rapide en 4 étapes • Zéro compte requis • Réponse sous 30 min",
+    sharePractitioner: "Recommander Brahim à un proche (WhatsApp)",
+    shareMessageText: "Salam / Bonjour, je te recommande Brahim El Mansouri, kinésithérapeute diplômé d'État qui se déplace à domicile à Tanger (mal de dos, rééducation, post-opératoire, seniors). Tu peux voir ses tarifs et réserver ici :",
+    urgentNoticeTitle: "Douleur aiguë ou besoin urgent ?",
+    urgentNoticeDesc: "Pour un lumbago aigu ou un blocage urgent, vous pouvez joindre Brahim par téléphone directement sans remplir le formulaire.",
+    urgentCallBtn: "Appeler d'urgence le kiné",
+    sendExercisesWA: "Envoyer les exercices du jour (WhatsApp)",
 
     // Specialties
     specialtiesTitle: "Soins & Spécialités à domicile",
@@ -151,6 +157,12 @@ export const TRANSLATIONS = {
     durationInfo: "المدة: 45 إلى 60 دقيقة",
     ctaBook: "حجز موعد عبر الإنترنت",
     ctaSubtext: "حجز سريع في 4 خطوات • بدون إنشاء حساب • رد خلال 30 دقيقة",
+    sharePractitioner: "مشاركة بطاقة إبراهيم مع قريب (واتساب)",
+    shareMessageText: "السلام عليكم، أنصحك بإبراهيم المنصوري، أخصائي ترويض طبي مرخص يتنقل للمنزل في طنجة (آلام الظهر، الديسك، الجراحة، كبار السن). يمكنك الاطلاع على أسعاره والحجز مباشرة هنا:",
+    urgentNoticeTitle: "ألم حاد أو حالة مستعجلة؟",
+    urgentNoticeDesc: "لحالات آلام الظهر الحادة أو التصلب المفاجئ، يمكنك الاتصال بإبراهيم هاتفياً مباشرة دون تعبئة الاستمارة.",
+    urgentCallBtn: "اتصال هاتفي عاجل بالأخصائي",
+    sendExercisesWA: "إرسال تمارين اليوم عبر واتساب",
 
     // Specialties
     specialtiesTitle: "العلاجات والتخصصات في المنزل",
@@ -280,6 +292,12 @@ export const TRANSLATIONS = {
     durationInfo: "Duration: 45 to 60 min",
     ctaBook: "Book Appointment Online",
     ctaSubtext: "Fast 4-step booking • No account needed • Confirmation within 30 min",
+    sharePractitioner: "Recommend Brahim to a friend (WhatsApp)",
+    shareMessageText: "Hello, I recommend Brahim El Mansouri, certified in-home physiotherapist in Tangier (back pain, rehab, post-surgery, seniors). You can check his rates and book here:",
+    urgentNoticeTitle: "Acute pain or urgent need?",
+    urgentNoticeDesc: "For severe back pain or urgent blockages, you can call Brahim directly without filling out the form.",
+    urgentCallBtn: "Call the therapist directly",
+    sendExercisesWA: "Send home exercises via WhatsApp",
 
     // Specialties
     specialtiesTitle: "In-Home Care & Specialties",
@@ -409,6 +427,12 @@ export const TRANSLATIONS = {
     durationInfo: "Duración: 45 a 60 min",
     ctaBook: "Reservar Cita Online",
     ctaSubtext: "Reserva rápida en 4 pasos • Sin registro de cuenta • Respuesta en 30 min",
+    sharePractitioner: "Recomendar a Brahim por WhatsApp",
+    shareMessageText: "Hola, te recomiendo a Brahim El Mansouri, fisioterapeuta colegiado a domicilio en Tánger (dolor de espalda, rehabilitación, posoperatorio, mayores). Puedes ver sus tarifas y reservar aquí:",
+    urgentNoticeTitle: "¿Dolor agudo o necesidad urgente?",
+    urgentNoticeDesc: "Para un lumbago agudo o bloqueo urgente, puede llamar a Brahim directamente sin rellenar el formulario.",
+    urgentCallBtn: "Llamar directamente al fisioterapeuta",
+    sendExercisesWA: "Enviar ejercicios del día por WhatsApp",
 
     // Specialties
     specialtiesTitle: "Tratamientos y Especialidades a Domicilio",

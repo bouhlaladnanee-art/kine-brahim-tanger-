@@ -16,12 +16,14 @@ import {
 import Card from '../common/Card';
 import Badge from '../common/Badge';
 import Button from '../common/Button';
+import ExercisesModal from './ExercisesModal';
 import { getGoogleMapsUrl, getWazeUrl } from '../../utils/maps';
 import { generateKineArrivalWhatsAppLink } from '../../utils/whatsapp';
 
 export default function TourTodayTab({ appointments, onUpdateStatus }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeGpsMenuId, setActiveGpsMenuId] = useState(null);
+  const [exerciseModalApt, setExerciseModalApt] = useState(null);
 
   // Filtrer les rendez-vous confirmés pour la date sélectionnée
   const tourAppointments = appointments
@@ -246,15 +248,26 @@ export default function TourTodayTab({ appointments, onUpdateStatus }) {
                         </button>
                       </>
                     ) : (
-                      <div className="col-span-2 flex items-center justify-between bg-primary-50 px-3 py-1.5 rounded-xl text-xs font-bold text-primary">
-                        <span className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4" /> Séance accomplie avec succès
-                        </span>
+                      <div className="col-span-2 space-y-2">
+                        <div className="flex items-center justify-between bg-primary-50 px-3 py-1.5 rounded-xl text-xs font-bold text-primary">
+                          <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4" /> Séance accomplie
+                          </span>
+                          <button
+                            onClick={() => onUpdateStatus(apt.id, 'confirme')}
+                            className="text-[10px] text-slate-500 underline"
+                          >
+                            Modifier
+                          </button>
+                        </div>
+
+                        {/* Bouton envoi exercices post-séance (Point B) */}
                         <button
-                          onClick={() => onUpdateStatus(apt.id, 'confirme')}
-                          className="text-[10px] text-slate-500 underline"
+                          onClick={() => setExerciseModalApt(apt)}
+                          className="w-full bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#128C7E] font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
                         >
-                          Modifier
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Envoyer exercices post-séance (WhatsApp)</span>
                         </button>
                       </div>
                     )}
@@ -264,6 +277,13 @@ export default function TourTodayTab({ appointments, onUpdateStatus }) {
             );
           })}
         </div>
+      )}
+      {/* MODAL ENVOI D'EXERCICES POST-SÉANCE */}
+      {exerciseModalApt && (
+        <ExercisesModal
+          appointment={exerciseModalApt}
+          onClose={() => setExerciseModalApt(null)}
+        />
       )}
     </div>
   );

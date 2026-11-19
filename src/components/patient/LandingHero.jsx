@@ -8,7 +8,10 @@ import {
   CalendarCheck, 
   Sparkles, 
   ArrowRight, 
-  CheckCircle2 
+  CheckCircle2,
+  Share2,
+  Phone,
+  AlertCircle
 } from 'lucide-react';
 import Button from '../common/Button';
 import { PRACTITIONER_INFO } from '../../data/constants';
@@ -18,6 +21,11 @@ import { useLanguage } from '../../context/LanguageContext';
 export default function LandingHero({ onStartBooking }) {
   const { t, isRTL } = useLanguage();
   const nextAvailability = availabilityService.getNextAvailabilityText();
+
+  // Lien de partage viral WhatsApp
+  const shareUrl = window.location.origin;
+  const shareWhatsAppMessage = `${t('shareMessageText')}\n${shareUrl}`;
+  const shareWhatsAppLink = `https://wa.me/?text=${encodeURIComponent(shareWhatsAppMessage)}`;
 
   return (
     <div className="relative overflow-hidden bg-white rounded-b-3xl border-b border-slate-100 shadow-sm">
@@ -107,7 +115,7 @@ export default function LandingHero({ onStartBooking }) {
         </div>
 
         {/* Bouton CTA Principal Corail */}
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2.5 pt-1">
           <Button
             variant="accent"
             size="lg"
@@ -119,9 +127,45 @@ export default function LandingHero({ onStartBooking }) {
           >
             {t('ctaBook')}
           </Button>
+
+          {/* Bouton Partager sur WhatsApp (Marketing de bouche à oreille) */}
+          <a
+            href={shareWhatsAppLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-bold text-xs py-3 px-4 rounded-2xl border border-[#25D366]/30 transition-all active:scale-[0.99]"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>{t('sharePractitioner')}</span>
+          </a>
+
           <p className="text-center text-[11px] text-text-muted">
             {t('ctaSubtext')}
           </p>
+        </div>
+
+        {/* Bloc Option Urgence / Appel direct (Point D) */}
+        <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-start gap-3 text-xs">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <Phone className="w-4 h-4" />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <div>
+              <h4 className="font-extrabold text-amber-900 leading-tight">
+                {t('urgentNoticeTitle')}
+              </h4>
+              <p className="text-[11px] text-amber-800 leading-relaxed mt-0.5">
+                {t('urgentNoticeDesc')}
+              </p>
+            </div>
+            <a
+              href={`tel:${PRACTITIONER_INFO.phone}`}
+              className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] py-1.5 px-3 rounded-lg shadow-xs transition-colors"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{t('urgentCallBtn')}</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
