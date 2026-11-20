@@ -88,6 +88,13 @@ if (isSupabaseConfigured && supabase) {
       }
     )
     .subscribe();
+
+  setInterval(fetchFromSupabase, 60000);
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') fetchFromSupabase();
+    });
+  }
 }
 
 async function persistToSupabase(config) {
@@ -206,6 +213,7 @@ export const availabilityService = {
 
   getAvailableUpcomingDates: (daysAhead = 14) => {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const weekdayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
     const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
     const result = [];
     for (let i = 0; i < daysAhead; i++) {
@@ -218,7 +226,8 @@ export const availabilityService = {
         result.push({
           iso,
           label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`,
-          sublabel: i === 0 ? "Aujourd'hui" : i === 1 ? 'Demain' : (isWeekend ? 'Week-end' : ''),
+          sublabel: i === 0 ? "Aujourd'hui" : i === 1 ? 'Demain' : '',
+          weekday: weekdayNames[d.getDay()],
           dateObj: d,
           isWeekend,
           availableSlotsCount: slots.length,
@@ -235,7 +244,6 @@ export const availabilityService = {
     const first = upcoming[0];
     if (first.sublabel === "Aujourd'hui") return `Aujourd'hui dès ${first.slots[0].hours.split('–')[0].trim()}`;
     if (first.sublabel === 'Demain') return `Demain (${first.label.split(' ')[0]}) dès ${first.slots[0].hours.split('–')[0].trim()}`;
-    if (first.isWeekend) return `${first.label} (Week-end ouvert)`;
     return `${first.label} dès ${first.slots[0].hours.split('–')[0].trim()}`;
   },
 };

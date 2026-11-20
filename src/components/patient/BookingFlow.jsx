@@ -603,15 +603,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                           }
                         `}
                       >
-                        {d.sublabel ? (
-                          <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
-                            {d.sublabel}
-                          </span>
-                        ) : (
-                          <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
-                            {d.label.split(' ')[0]}
-                          </span>
-                        )}
+                        <span className={`text-[11px] font-bold ${isSelected ? 'text-white' : 'text-text-main'}`}>
+                          {d.weekday}
+                        </span>
                         <span className="text-base font-extrabold leading-none">
                           {d.dateObj.getDate()}
                         </span>
@@ -621,6 +615,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                         <span className={`text-[9px] font-semibold ${isSelected ? 'text-emerald-300' : 'text-emerald-700'}`}>
                           {d.availableSlotsCount} créneau{d.availableSlotsCount > 1 ? 'x' : ''}
                         </span>
+                        {d.sublabel && (
+                          <span className={`text-[10px] font-bold uppercase ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
+                            {d.sublabel}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -629,25 +628,10 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span>Créneau horaire <span className="text-rose-500">*</span></span>
-                </label>
-                {new Date(formData.date + 'T00:00:00').getDay() === 0 || new Date(formData.date + 'T00:00:00').getDay() === 6 ? (
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    Week-end ouvert
-                  </span>
-                ) : activeDateSlots.length > 0 ? (
-                  <span className="text-[10px] font-bold text-primary bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full">
-                    Créneau ouvert en semaine
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
-                    Créneaux vides par défaut
-                  </span>
-                )}
-              </div>
+              <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-primary" />
+                <span>Créneau horaire <span className="text-rose-500">*</span></span>
+              </label>
 
               {activeDateSlots.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center space-y-2.5">
