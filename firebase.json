@@ -1,15 +1,4 @@
 {
-  "auth": {
-    "providers": {
-      "emailPassword": true
-    }
-  },
-  "firestore": {
-    "rules": "firestore.rules"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  },
   "hosting": {
     "public": "dist",
     "ignore": [
