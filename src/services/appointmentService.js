@@ -42,9 +42,7 @@ export const appointmentService = {
           geoCoordinates: appointmentData.geoCoordinates || null,
         };
 
-        const { data, error } = await supabase
-          .from('appointments')
-          .insert([{
+        const row = {
             patient_name: appointmentData.patientName,
             patient_phone: appointmentData.phone || appointmentData.patientPhone || null,
             patient_address: JSON.stringify(location),
@@ -58,14 +56,15 @@ export const appointmentService = {
             prescription_file_name: prescriptionFileName,
             status: 'en_attente',
             language: appointmentData.language || 'fr',
-          }])
-          .select()
-          .single();
+        };
+
+        // Insertion sans relecture (pas de .select()) : le patient anonyme a le droit
+        // d'écrire une demande mais pas de lire la table (données de santé des autres patients).
+        const { error } = await supabase.from('appointments').insert([row]);
 
         if (error) throw error;
 
-        // Normaliser les clés pour compatibilité avec le reste de l'app
-        return normalizeAppointment(data);
+        return normalizeAppointment({ ...row, created_at: new Date().toISOString() });
       } catch (error) {
         // Ne jamais simuler un succès : sinon le patient croit avoir réservé
         // alors que le kiné ne reçoit rien. L'appelant affiche l'erreur.
