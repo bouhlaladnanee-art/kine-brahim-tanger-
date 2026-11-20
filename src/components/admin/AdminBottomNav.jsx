@@ -1,70 +1,34 @@
 import React from 'react';
-import { Route, Inbox, CalendarClock, Receipt, History } from 'lucide-react';
+import { Home, CalendarClock, Menu } from 'lucide-react';
+
+const TABS = [
+  { id: 'jour', label: "Aujourd'hui", icon: Home },
+  { id: 'planning', label: 'Planning', icon: CalendarClock },
+  { id: 'plus', label: 'Plus', icon: Menu },
+];
 
 export default function AdminBottomNav({ activeTab, onSelectTab, pendingCount = 0 }) {
-  const tabs = [
-    {
-      id: 'tournee',
-      label: 'Tournée',
-      icon: Route,
-      badge: null,
-    },
-    {
-      id: 'demandes',
-      label: 'Demandes',
-      icon: Inbox,
-      badge: pendingCount > 0 ? pendingCount : null,
-    },
-    {
-      id: 'planning',
-      label: 'Planning',
-      icon: CalendarClock,
-      badge: null,
-    },
-    {
-      id: 'factures',
-      label: 'Factures',
-      icon: Receipt,
-      badge: null,
-    },
-    {
-      id: 'historique',
-      label: 'Historique',
-      icon: History,
-      badge: null,
-    },
-  ];
-
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 safe-bottom shadow-lg no-print">
-      <div className="max-w-md mx-auto grid grid-cols-5 h-16">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 safe-bottom no-print">
+      <div className="max-w-md mx-auto grid grid-cols-3 h-16">
+        {TABS.map(({ id, label, icon: Icon }) => {
+          const isActive = activeTab === id;
+          const badge = id === 'jour' && pendingCount > 0 ? pendingCount : null;
           return (
             <button
-              key={tab.id}
-              onClick={() => onSelectTab(tab.id)}
-              className={`
-                relative flex flex-col items-center justify-center gap-1 transition-all duration-200 select-none
-                ${isActive ? 'text-primary font-bold' : 'text-slate-400 hover:text-slate-600 font-medium'}
-              `}
+              key={id}
+              onClick={() => onSelectTab(id)}
+              className={`flex flex-col items-center justify-center gap-1 ${isActive ? 'text-primary' : 'text-slate-400'}`}
             >
-              <div className="relative">
-                <Icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-110 text-primary' : ''}`} />
-                {tab.badge && (
-                  <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
-                    {tab.badge}
+              <span className="relative">
+                <Icon className="w-6 h-6" />
+                {badge && (
+                  <span className="absolute -top-1.5 -right-2.5 bg-rose-500 text-white text-[11px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                    {badge}
                   </span>
                 )}
-              </div>
-              <span className="text-[9px] leading-tight tracking-tight">
-                {tab.label}
               </span>
-              {isActive && (
-                <span className="absolute bottom-1 w-5 h-0.5 bg-primary rounded-full" />
-              )}
+              <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{label}</span>
             </button>
           );
         })}

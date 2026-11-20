@@ -25,7 +25,6 @@ export default function LandingHero({ onStartBooking }) {
     return () => unsubscribe();
   }, []);
 
-  // Message WhatsApp direct personnalisé
   const directWaText = currentLanguage === 'ar'
     ? "السلام عليكم إبراهيم، أريد حجز موعد لحصة ترويض طبي منزلي في طنجة."
     : "Bonjour Ibrahim, je souhaite convenir d'un rendez-vous pour une séance de kiné à domicile à Tanger.";
@@ -35,7 +34,6 @@ export default function LandingHero({ onStartBooking }) {
     <div className="bg-white">
       <div className="p-4 sm:p-6 space-y-5">
         
-        {/* En-tête : Badge Praticien Diplômé & Périmètre Tanger */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
@@ -46,7 +44,6 @@ export default function LandingHero({ onStartBooking }) {
           </span>
         </div>
 
-        {/* Fiche Profil Praticien */}
         <div className="flex items-center gap-4 pt-1">
           <div className="relative shrink-0">
             <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-primary-800 to-slate-900 p-0.5 shadow-sm flex items-center justify-center text-white overflow-hidden relative">
@@ -73,18 +70,15 @@ export default function LandingHero({ onStartBooking }) {
           </div>
         </div>
 
-        {/* Badge disponibilité réactive (Supabase Realtime) */}
         <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold w-full justify-center sm:justify-start">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>{nextAvailability}</span>
         </div>
 
-        {/* Présentation / Bio sobre */}
         <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 text-xs text-text-main leading-relaxed">
           <p>{t('practitionerBio')}</p>
         </div>
 
-        {/* Bloc Tarif clair & Rassurance médicale */}
         <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200 space-y-3">
           <div className="flex items-baseline justify-between">
             <div>
@@ -120,11 +114,7 @@ export default function LandingHero({ onStartBooking }) {
           </div>
         </div>
 
-        {/* ------------------------------------------------------------- */}
-        {/* LES 2 SEULES ACTIONS PRINCIPALES (CLAIRES, INTUITIVES, NETTES) */}
-        {/* ------------------------------------------------------------- */}
         <div className="space-y-3 pt-2">
-          {/* Action 1 : Prise de rendez-vous en ligne (Bouton d'accent principal) */}
           <Button
             variant="accent"
             size="lg"
@@ -137,7 +127,6 @@ export default function LandingHero({ onStartBooking }) {
             {t('ctaBook')} (1 min)
           </Button>
 
-          {/* Action 2 : WhatsApp direct (Bouton secondaire clair et identifiable) */}
           <a
             href={directWhatsAppLink}
             target="_blank"
@@ -148,7 +137,6 @@ export default function LandingHero({ onStartBooking }) {
             <span>Contacter directement sur WhatsApp</span>
           </a>
 
-          {/* Lien d'appel discret pour urgence ou personne âgée */}
           <div className="text-center pt-1">
             <a
               href={`tel:${PRACTITIONER_INFO.phone}`}

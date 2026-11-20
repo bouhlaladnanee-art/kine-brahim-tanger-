@@ -1,4 +1,3 @@
-// Données constantes pour l'application Kiné Tanger
 
 // Numéro du praticien : une seule source, VITE_KINE_PHONE (format international sans +, ex. 2126XXXXXXXX)
 const KINE_PHONE_INTL = String(import.meta.env.VITE_KINE_PHONE || '').replace(/\D/g, '');
@@ -21,7 +20,6 @@ export const PRACTITIONER_INFO = {
   bio: "Prise en charge personnalisée à votre domicile à Tanger. Ponctualité, hygiène rigoureuse et écoute attentive pour soulager vos douleurs et restaurer votre mobilité.",
 };
 
-// Quartiers de Tanger couverts
 export const TANGER_NEIGHBORHOODS = [
   { id: 'malabata', name: 'Malabata / Baie de Tanger' },
   { id: 'centre_ville', name: 'Centre-ville / Boulevard Pasteur' },
@@ -36,7 +34,6 @@ export const TANGER_NEIGHBORHOODS = [
   { id: 'autre', name: 'Autre quartier de Tanger' },
 ];
 
-// Spécialités et motifs de consultation
 export const CARE_TYPES = [
   {
     id: 'post_op',
@@ -70,7 +67,6 @@ export const CARE_TYPES = [
   }
 ];
 
-// Créneaux horaires
 export const TIME_SLOTS = [
   {
     id: 'matin',
@@ -95,7 +91,6 @@ export const TIME_SLOTS = [
   }
 ];
 
-// Statuts des rendez-vous
 export const APPOINTMENT_STATUS = {
   en_attente: {
     label: 'En attente',

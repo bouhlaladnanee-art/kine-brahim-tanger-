@@ -75,7 +75,6 @@ export default function InvoiceModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
-        {/* Barre d'outils supérieure */}
         <div className="p-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5 text-primary" />
@@ -105,7 +104,6 @@ export default function InvoiceModal({
           </div>
         </div>
 
-        {/* Corps principal : Aperçu ou Formulaire */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           {activeView === 'edit' ? (
             <div className="space-y-3 text-xs">
@@ -216,9 +214,7 @@ export default function InvoiceModal({
               </Button>
             </div>
           ) : (
-            /* APERÇU DE LA FACTURE MÉDICALE OFFICIELLE */
             <div id="printable-invoice" className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-text-main text-xs">
-              {/* En-tête Facture Cabinet Kiné */}
               <div className="flex justify-between items-start border-b border-slate-200 pb-3">
                 <div className="space-y-0.5">
                   <h3 className="text-base font-extrabold text-primary">
@@ -248,7 +244,6 @@ export default function InvoiceModal({
                 </div>
               </div>
 
-              {/* Mentions Praticien & Patient */}
               <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px]">
                 <div>
                   <span className="font-bold text-slate-400 uppercase text-[9px] block">
@@ -267,7 +262,6 @@ export default function InvoiceModal({
                 </div>
               </div>
 
-              {/* Tableau des Prestations */}
               <div className="border border-slate-200 rounded-xl overflow-hidden">
                 <table className="w-full text-left text-[11px]">
                   <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
@@ -298,7 +292,6 @@ export default function InvoiceModal({
                 </table>
               </div>
 
-              {/* Total & Mention d'encaissement */}
               <div className="flex justify-between items-end pt-1">
                 <div className="space-y-1">
                   <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full ${formData.status === 'payee' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
@@ -320,7 +313,6 @@ export default function InvoiceModal({
                 </div>
               </div>
 
-              {/* Cachet et signature numérique */}
               <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-500">
                 <div>
                   <span>Fait à Tanger, le {formData.date}</span>
@@ -335,10 +327,8 @@ export default function InvoiceModal({
           )}
         </div>
 
-        {/* Barre d'actions inférieure (WhatsApp & Impression PDF) */}
         <div className="p-3.5 bg-slate-50 border-t border-slate-100 space-y-2 no-print">
           <div className="grid grid-cols-2 gap-2">
-            {/* BOUTON ENVOI WHATSAPP DIRECT */}
             <button
               onClick={handleSendWhatsApp}
               className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BD5A] text-white py-3 px-3 rounded-xl font-bold text-xs shadow-md transition-all active:scale-[0.98]"
@@ -347,7 +337,6 @@ export default function InvoiceModal({
               <span>Envoyer sur WhatsApp</span>
             </button>
 
-            {/* BOUTON IMPRIMER / ENREGISTRER EN PDF */}
             <button
               onClick={handlePrint}
               className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-600 text-white py-3 px-3 rounded-xl font-bold text-xs shadow-md transition-all active:scale-[0.98]"

@@ -25,7 +25,6 @@ export function LanguageProvider({ children }) {
     }
   });
 
-  // Applique la direction RTL pour l'Arabe et la langue dans le DOM
   useEffect(() => {
     const isArabic = currentLanguage === 'ar';
     document.documentElement.dir = isArabic ? 'rtl' : 'ltr';

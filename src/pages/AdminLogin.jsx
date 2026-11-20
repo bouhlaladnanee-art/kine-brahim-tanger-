@@ -10,7 +10,6 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  // Phone auth state
   const [phoneNumber, setPhoneNumber] = useState('+212');
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -57,7 +56,6 @@ export default function AdminLogin() {
   return (
     <div className="flex-1 flex flex-col justify-between p-5 sm:p-6 bg-white min-h-screen">
       <div className="pt-6 space-y-6">
-        {/* Logo & Titre */}
         <div className="text-center space-y-3">
           <div className="w-16 h-16 bg-primary-50 text-primary rounded-2xl flex items-center justify-center mx-auto shadow-soft ring-4 ring-primary-50/50">
             <ShieldCheck className="w-9 h-9" />
@@ -72,7 +70,6 @@ export default function AdminLogin() {
           </div>
         </div>
 
-        {/* Sélecteur de méthode d'authentification */}
         <div className="flex p-1 bg-slate-100 rounded-xl">
           <button
             type="button"
@@ -96,14 +93,12 @@ export default function AdminLogin() {
           </button>
         </div>
 
-        {/* Message d'erreur */}
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs">
             {error}
           </div>
         )}
 
-        {/* Mode Email & Mot de passe */}
         {authMode === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -152,7 +147,6 @@ export default function AdminLogin() {
             </Button>
           </form>
         ) : (
-          /* Mode Authentification Téléphone / SMS OTP */
           <div className="space-y-4">
             <div id="recaptcha-container"></div>
 
@@ -239,7 +233,6 @@ export default function AdminLogin() {
         )}
       </div>
 
-      {/* Retour site patient */}
       <div className="pt-6 pb-2 text-center border-t border-slate-100">
         <Link
           to="/"

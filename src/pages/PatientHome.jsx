@@ -24,7 +24,6 @@ export default function PatientHome() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      {/* Header */}
       <Header
         showBack={isBookingOpen}
         onBack={handleCloseBooking}
@@ -32,7 +31,6 @@ export default function PatientHome() {
         subtitle={isBookingOpen ? "Tanger • Prise de rendez-vous express" : t('appTitle')}
       />
 
-      {/* Pages distinctes : SOIT la Fiche de présentation, SOIT le Formulaire par étapes */}
       {isBookingOpen ? (
         <BookingFlow
           onCancel={handleCloseBooking}
@@ -41,14 +39,12 @@ export default function PatientHome() {
           }}
         />
       ) : (
-        /* PAGE UNIQUE : FICHE DE PRÉSENTATION MÉDICALE OFFICIELLE */
         <div className="flex-1 flex flex-col justify-between">
           <div>
             <MyBookingsCard />
             <LandingHero onStartBooking={handleStartBooking} />
           </div>
 
-          {/* Footer discret avec lien Espace Kiné (/admin) */}
           <footer className="p-4 text-center border-t border-slate-100 bg-white/50 space-y-2 mt-6">
             <p className="text-[11px] text-text-muted">
               © {new Date().getFullYear()} {PRACTITIONER_INFO.name} — Kinésithérapie à domicile à Tanger.

@@ -90,9 +90,8 @@ export default function InvoicesTab({ onOpenInvoiceForAppointment }) {
   };
 
   return (
-    <div className="space-y-4 pb-20">
-      {/* Résumé Financier & Création rapide */}
-      <div className="bg-gradient-to-r from-primary to-primary-700 text-white p-4 sm:p-5 rounded-2xl shadow-soft space-y-3">
+    <div className="space-y-4">
+      <div className="bg-primary text-white p-4 sm:p-5 rounded-2xl shadow-soft space-y-3">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <span className="text-xs text-primary-200 uppercase font-semibold tracking-wider">
@@ -127,7 +126,6 @@ export default function InvoicesTab({ onOpenInvoiceForAppointment }) {
         </div>
       </div>
 
-      {/* Barre de recherche */}
       <div className="relative">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
         <input
@@ -139,7 +137,6 @@ export default function InvoicesTab({ onOpenInvoiceForAppointment }) {
         />
       </div>
 
-      {/* Liste des factures */}
       {filteredInvoices.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center space-y-3">
           <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
@@ -184,7 +181,6 @@ export default function InvoicesTab({ onOpenInvoiceForAppointment }) {
                 </div>
               </div>
 
-              {/* Actions rapides Facture */}
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
                 <button
                   onClick={() => handleSendWhatsAppDirect(inv)}
@@ -215,7 +211,6 @@ export default function InvoicesTab({ onOpenInvoiceForAppointment }) {
         </div>
       )}
 
-      {/* MODAL FACTURE PDF & WHATSAPP */}
       {isModalOpen && (
         <InvoiceModal
           initialData={activeModalData}

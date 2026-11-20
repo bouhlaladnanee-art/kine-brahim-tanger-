@@ -49,7 +49,6 @@ export default function ExercisesModal({ appointment, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col my-auto max-h-[92vh]">
-        {/* En-tête */}
         <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary-100 text-primary flex items-center justify-center">
@@ -72,7 +71,6 @@ export default function ExercisesModal({ appointment, onClose }) {
           </button>
         </div>
 
-        {/* Liste des exercices sélectionnables */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <p className="text-xs text-text-muted">
             Cochez les exercices à inclure dans le message WhatsApp envoyé au patient :
@@ -112,7 +110,6 @@ export default function ExercisesModal({ appointment, onClose }) {
           </div>
         </div>
 
-        {/* Action WhatsApp */}
         <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-2">
           <button
             onClick={handleSendWhatsApp}

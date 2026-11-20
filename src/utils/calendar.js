@@ -1,10 +1,5 @@
-// Générateur d'événements d'agenda (Google Calendar & fichier .ics iCalendar)
 
-/**
- * Calcule les dates de début et fin au format ISO compact pour iCalendar / Google Calendar
- */
 function getEventDates(dateStr, timeSlot) {
-  // dateStr format: YYYY-MM-DD
   let startHour = 9;
   let endHour = 10;
 
@@ -33,9 +28,6 @@ function getEventDates(dateStr, timeSlot) {
   };
 }
 
-/**
- * Génère le lien Web direct vers Google Calendar
- */
 export function generateGoogleCalendarUrl(appointment) {
   const { startUTC, endUTC } = getEventDates(appointment.date, appointment.timeSlot);
   
@@ -71,9 +63,6 @@ export function generateGoogleCalendarUrl(appointment) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-/**
- * Génère et déclenche le téléchargement d'un fichier .ics (Apple Calendar, Outlook, Android)
- */
 export function downloadICSFile(appointment) {
   const { startUTC, endUTC } = getEventDates(appointment.date, appointment.timeSlot);
   

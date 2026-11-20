@@ -1,13 +1,9 @@
-// Service de gestion des disponibilités - Temps réel Supabase + Cache Local synchrone
 import { supabase, isSupabaseConfigured } from './supabase';
 import { TIME_SLOTS } from '../data/constants';
 
 const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v3';
 const AVAILABILITY_ROW_ID = '00000000-0000-0000-0000-000000000001';
 
-// Configuration par défaut demandée par le praticien :
-// - En semaine (Lundi à Vendredi) : CRÉNEAUX VIDES par défaut (déverrouillables depuis /admin)
-// - Le week-end (Samedi & Dimanche) : TOUT ACTIVÉ par défaut (Matin, Après-midi, Soirée)
 export const DEFAULT_WEEKLY_TEMPLATE = {
   1: [],                                      // Lundi : Vides par défaut
   2: [],                                      // Mardi : Vides par défaut
@@ -18,7 +14,6 @@ export const DEFAULT_WEEKLY_TEMPLATE = {
   0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Tout activé par défaut
 };
 
-// ─── Gestion des écouteurs réactifs (listeners) ──────────────────────────────
 const listeners = new Set();
 
 function notifyListeners() {
@@ -26,8 +21,6 @@ function notifyListeners() {
     try { cb(availabilityService.getConfig()); } catch (err) { console.error(err); }
   });
 }
-
-// ─── Helpers localStorage (sync immédiat) ────────────────────────────────────
 
 function getConfigFromLocal() {
   try {
@@ -48,8 +41,6 @@ function saveConfigToLocal(config) {
     localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(config)); 
   } catch {}
 }
-
-// ─── Synchronisation Supabase Réseau & Temps Réel ─────────────────────────────
 
 async function fetchFromSupabase() {
   if (!isSupabaseConfigured || !supabase) return;
@@ -74,11 +65,9 @@ async function fetchFromSupabase() {
   }
 }
 
-// Lancement immédiat du chargement distant
 if (isSupabaseConfigured && supabase) {
   fetchFromSupabase();
 
-  // Écoute en direct des modifications faites par le kiné (depuis le Maroc ou n'importe où)
   supabase
     .channel('availability-realtime-sync')
     .on(
@@ -100,8 +89,6 @@ if (isSupabaseConfigured && supabase) {
     )
     .subscribe();
 }
-
-// ─── Sauvegarde Cloud vers Supabase ──────────────────────────────────────────
 
 async function persistToSupabase(config) {
   if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase non configuré' };
@@ -127,19 +114,15 @@ async function persistToSupabase(config) {
   }
 }
 
-// ─── API publique du service ─────────────────────────────────────────────────
-
 export const availabilityService = {
   getConfig: () => getConfigFromLocal(),
 
-  // Abonnement réactif pour les composants React (LandingHero, BookingFlow, etc.)
   subscribe: (callback) => {
     listeners.add(callback);
     callback(availabilityService.getConfig());
     return () => listeners.delete(callback);
   },
 
-  // Forcer un rafraîchissement depuis le cloud
   refreshFromCloud: async () => {
     await fetchFromSupabase();
     return availabilityService.getConfig();
@@ -152,7 +135,6 @@ export const availabilityService = {
     return result;
   },
 
-  // Basculer un créneau individuel pour un jour de la semaine
   toggleWeeklySlot: async (dayIndex, slotId) => {
     const config = availabilityService.getConfig();
     const current = config.weeklyTemplate[dayIndex] || [];
@@ -162,14 +144,12 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Activer ou désactiver tous les créneaux d'un jour donné
   setDaySlots: async (dayIndex, slotIds) => {
     const config = availabilityService.getConfig();
     config.weeklyTemplate[dayIndex] = [...slotIds];
     return availabilityService.saveConfig(config);
   },
 
-  // Déverrouiller tous les créneaux en semaine (Lundi à Vendredi)
   unlockAllWeekdays: async () => {
     const config = availabilityService.getConfig();
     const allSlots = ['matin', 'apres_midi', 'fin_journee'];
@@ -179,7 +159,6 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Verrouiller tous les créneaux en semaine (remise à vide par défaut)
   lockAllWeekdays: async () => {
     const config = availabilityService.getConfig();
     for (let i = 1; i <= 5; i++) {
@@ -188,7 +167,6 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Réinitialiser au profil par défaut : Week-ends complets, semaine vide
   resetToDefaults: async () => {
     const config = {
       weeklyTemplate: JSON.parse(JSON.stringify(DEFAULT_WEEKLY_TEMPLATE)),
@@ -198,7 +176,6 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Ajustement pour une date spécifique
   toggleCustomDateSlot: async (dateISO, slotId) => {
     const config = availabilityService.getConfig();
     const current = availabilityService.getAvailableSlotsForDate(dateISO).map(s => s.id);
@@ -208,7 +185,6 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Bloquer / Débloquer une journée entière
   toggleBlockDate: async (dateISO) => {
     const config = availabilityService.getConfig();
     const blocked = config.blockedDates || [];
@@ -218,7 +194,6 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  // Retourne les créneaux ouverts pour une date donnée
   getAvailableSlotsForDate: (dateISO) => {
     const config = availabilityService.getConfig();
     if (config.blockedDates?.includes(dateISO)) return [];
@@ -229,7 +204,6 @@ export const availabilityService = {
     return TIME_SLOTS.filter(s => (config.weeklyTemplate[day] || []).includes(s.id));
   },
 
-  // Retourne les prochaines dates avec au moins 1 créneau ouvert
   getAvailableUpcomingDates: (daysAhead = 14) => {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
@@ -255,7 +229,6 @@ export const availabilityService = {
     return result;
   },
 
-  // Texte synthétique de disponibilité affiché sur la page d'accueil
   getNextAvailabilityText: () => {
     const upcoming = availabilityService.getAvailableUpcomingDates(14);
     if (upcoming.length === 0) return 'Week-ends ouverts • Semaine sur demande';

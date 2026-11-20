@@ -23,7 +23,6 @@ export default function PhaseOneShowcase() {
       <Header />
 
       <main className="p-4 sm:p-5 space-y-6">
-        {/* Bannière de validation Phase 1 */}
         <div className="bg-gradient-to-r from-primary to-primary-700 text-white p-5 rounded-3xl shadow-soft">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
@@ -49,7 +48,6 @@ export default function PhaseOneShowcase() {
           </div>
         </div>
 
-        {/* Palette de Couleurs */}
         <section className="space-y-2">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">
             Palette Visuelle & Tokens
@@ -70,7 +68,6 @@ export default function PhaseOneShowcase() {
           </div>
         </section>
 
-        {/* Boutons Tactiles */}
         <section className="space-y-3">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">
             Composants Boutons Tactiles (Mobile First)
@@ -93,7 +90,6 @@ export default function PhaseOneShowcase() {
           </div>
         </section>
 
-        {/* Statuts des Rendez-vous */}
         <section className="space-y-2">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">
             Badges de Statuts Firestore
@@ -106,7 +102,6 @@ export default function PhaseOneShowcase() {
           </div>
         </section>
 
-        {/* Échantillon Soins & Quartiers */}
         <section className="space-y-2">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">
             Exemple de Carte de Soin Interactive
@@ -123,7 +118,6 @@ export default function PhaseOneShowcase() {
           </Card>
         </section>
 
-        {/* Aperçu des quartiers */}
         <section className="space-y-2">
           <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">
             Couverture Tanger & Périmètre

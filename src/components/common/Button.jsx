@@ -19,7 +19,7 @@ export default function Button({
   const sizeStyles = {
     sm: 'text-sm py-2 px-3 gap-1.5',
     md: 'text-base py-3 px-5 gap-2',
-    lg: 'text-base sm:text-lg py-4 px-6 gap-2.5', // Grande taille tactile pour mobile
+    lg: 'text-base sm:text-lg py-4 px-6 gap-2.5',
   };
 
   const variantStyles = {

@@ -18,7 +18,6 @@ import { formatDateLong, getTrackingUrl, saveMyBooking } from '../utils/myBookin
 
 const REFRESH_MS = 20000;
 
-// Traduit l'état brut de la demande en un message clair pour le patient
 function describe(apt) {
   if (apt.status === 'annule') {
     return apt.patientResponse === 'annule_par_patient'
@@ -140,7 +139,6 @@ export default function BookingTracking() {
 
         {state === 'ready' && apt && info && (
           <>
-            {/* Statut principal */}
             <div className={`rounded-2xl border p-4 space-y-1.5 ${TONES[info.tone]}`}>
               <div className="flex items-center gap-2">
                 <info.icon className="w-5 h-5 shrink-0" />
@@ -149,7 +147,6 @@ export default function BookingTracking() {
               <p className="text-sm leading-relaxed">{info.text}</p>
             </div>
 
-            {/* Proposition d'un autre horaire */}
             {info.key === 'proposal' && (
               <div className="rounded-2xl border-2 border-amber-300 p-4 space-y-3">
                 <p className="text-sm text-text-muted">Horaire proposé par Ibrahim :</p>
@@ -181,7 +178,6 @@ export default function BookingTracking() {
               <p className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3">{actionError}</p>
             )}
 
-            {/* Récapitulatif */}
             <div className="rounded-2xl border border-slate-200 divide-y divide-slate-100 text-sm">
               <div className="flex justify-between gap-3 p-3.5">
                 <span className="text-text-muted">Patient</span>
@@ -205,7 +201,6 @@ export default function BookingTracking() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="space-y-2.5">
               <a
                 href={waLink}

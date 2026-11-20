@@ -15,11 +15,9 @@ export function AuthProvider({ children }) {
   });
   const [loading, setLoading] = useState(false);
 
-  // Synchronisation Supabase Auth
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
 
-    // Vérifier la session existante au démarrage
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const userObj = buildUserObj(session.user);
@@ -33,7 +31,6 @@ export function AuthProvider({ children }) {
       }
     });
 
-    // Écouter les changements d'état auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const userObj = buildUserObj(session.user);
@@ -75,7 +72,6 @@ export function AuthProvider({ children }) {
         throw err;
       }
     } else {
-      // Mode simulation locale
       await new Promise(r => setTimeout(r, 400));
       const userObj = {
         email: email || 'kine@tanger.ma',
@@ -91,7 +87,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // OTP Email (Supabase natif - sans SMS pour le moment)
   const sendPhoneCode = async (email, _containerId) => {
     setLoading(true);
     if (isSupabaseConfigured && supabase) {
@@ -174,7 +169,6 @@ export function AuthProvider({ children }) {
       isAuthenticated: !!currentUser,
       loading,
       isSupabaseConfigured,
-      // Alias pour compatibilité
       isFirebaseConfigured: isSupabaseConfigured,
     }}>
       {children}

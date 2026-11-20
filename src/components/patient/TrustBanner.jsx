@@ -55,7 +55,6 @@ export default function TrustBanner() {
           })}
         </div>
 
-        {/* Zones desservies à Tanger */}
         <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center gap-1.5 text-xs font-bold text-text-main mb-2">
             <MapPin className="w-3.5 h-3.5 text-accent" />

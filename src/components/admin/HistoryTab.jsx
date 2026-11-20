@@ -23,7 +23,7 @@ export default function HistoryTab({
   const filteredList = appointments.filter(a => {
     if (filter === 'accompli') return a.status === 'accompli';
     if (filter === 'annule') return a.status === 'annule';
-    return true; // Tous
+    return true;
   });
 
   const completedCount = appointments.filter(a => a.status === 'accompli').length;
@@ -31,9 +31,8 @@ export default function HistoryTab({
   const totalRevenueMAD = completedCount * PRACTITIONER_INFO.basePriceMAD;
 
   return (
-    <div className="space-y-4 pb-20">
-      {/* Synthèse comptable & performance */}
-      <div className="bg-gradient-to-r from-primary to-primary-700 text-white p-4 sm:p-5 rounded-2xl shadow-soft space-y-3">
+    <div className="space-y-4">
+      <div className="bg-primary text-white p-4 sm:p-5 rounded-2xl shadow-soft space-y-3">
         <span className="text-xs text-primary-200 uppercase font-semibold tracking-wider">
           Comptabilité & Suivi d'activité
         </span>
@@ -68,7 +67,6 @@ export default function HistoryTab({
         </div>
       </div>
 
-      {/* Barre de filtres */}
       <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
         <button
           onClick={() => setFilter('tous')}
@@ -90,7 +88,6 @@ export default function HistoryTab({
         </button>
       </div>
 
-      {/* Liste des rendez-vous passés */}
       {filteredList.length === 0 ? (
         <div className="bg-white rounded-2xl p-8 border border-slate-100 text-center space-y-2">
           <History className="w-8 h-8 text-slate-300 mx-auto" />
@@ -126,7 +123,6 @@ export default function HistoryTab({
                   </div>
                 </div>
 
-                {/* Bouton générer facture si accompli */}
                 {isAccomplished && (
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-[11px] font-bold text-emerald-700">

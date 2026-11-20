@@ -1,4 +1,3 @@
-// Service de stockage Mock mimiquant Firestore pour la Phase 2 & 3
 
 const STORAGE_KEY = 'kine_tanger_appointments_v1';
 
@@ -19,7 +18,7 @@ const INITIAL_SAMPLE_APPOINTMENTS = [
       longitude: -5.7892,
       accuracy: 12
     },
-    date: new Date().toISOString().split('T')[0], // Aujourd'hui
+    date: new Date().toISOString().split('T')[0],
     timeSlot: 'matin',
     timeSlotLabel: 'Matin (09h00 – 12h00)',
     timeExact: '10:00',
@@ -44,7 +43,7 @@ const INITIAL_SAMPLE_APPOINTMENTS = [
       longitude: -5.8143,
       accuracy: 8
     },
-    date: new Date().toISOString().split('T')[0], // Aujourd'hui
+    date: new Date().toISOString().split('T')[0],
     timeSlot: 'apres_midi',
     timeSlotLabel: 'Après-midi (14h00 – 17h00)',
     timeExact: '15:30',
@@ -69,7 +68,7 @@ const INITIAL_SAMPLE_APPOINTMENTS = [
       longitude: -5.8211,
       accuracy: 15
     },
-    date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Demain
+    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     timeSlot: 'matin',
     timeSlotLabel: 'Matin (09h00 – 12h00)',
     timeExact: '11:00',

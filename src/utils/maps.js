@@ -1,8 +1,4 @@
-// Utilitaires de navigation GPS (Google Maps et Waze)
 
-/**
- * Génère le lien Google Maps Navigation
- */
 export function getGoogleMapsUrl(appointment) {
   if (appointment.geoCoordinates && appointment.geoCoordinates.latitude && appointment.geoCoordinates.longitude) {
     const { latitude, longitude } = appointment.geoCoordinates;
@@ -13,9 +9,6 @@ export function getGoogleMapsUrl(appointment) {
   return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
-/**
- * Génère le lien Waze Navigation
- */
 export function getWazeUrl(appointment) {
   if (appointment.geoCoordinates && appointment.geoCoordinates.latitude && appointment.geoCoordinates.longitude) {
     const { latitude, longitude } = appointment.geoCoordinates;

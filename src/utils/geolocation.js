@@ -1,4 +1,3 @@
-// Utilitaire de capture GPS via HTML5 Geolocation API
 
 export function getCurrentCoordinates() {
   return new Promise((resolve, reject) => {

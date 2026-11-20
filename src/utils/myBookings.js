@@ -27,7 +27,6 @@ export function removeMyBooking(token) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(getMyBookings().filter(b => b.token !== token)));
   } catch {
-    // ignoré
   }
 }
 
@@ -35,7 +34,6 @@ export function getTrackingUrl(token) {
   return `${window.location.origin}/suivi/${token}`;
 }
 
-// "2026-11-28" → "samedi 28 novembre"
 export function formatDateLong(iso, locale = 'fr-FR') {
   if (!iso) return '';
   const d = new Date(`${String(iso).slice(0, 10)}T12:00:00`);

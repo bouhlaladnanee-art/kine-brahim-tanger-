@@ -1,4 +1,3 @@
-// Utilitaire de génération des liens WhatsApp multilingue pour Tanger
 
 export function formatWhatsAppNumber(phone) {
   // Sans numéro : chaîne vide → wa.me laisse choisir le contact (jamais un numéro par défaut)
@@ -13,9 +12,6 @@ export function formatWhatsAppNumber(phone) {
   return '212' + clean;
 }
 
-/**
- * Génère le lien WhatsApp avec message pré-rempli dans la langue du patient (FR, AR, EN, ES)
- */
 export function generatePatientWhatsAppLink({
   patientName,
   phone,
@@ -92,7 +88,6 @@ export function generatePatientWhatsAppLink({
     if (trackingUrl) msg += `🔎 *Seguimiento:* ${trackingUrl}\n`;
     msg += `\n¡Muchas gracias por confirmar su visita!`;
   } else {
-    // Français (par défaut)
     msg = `Bonjour Ibrahim, je viens d'effectuer une demande de rendez-vous pour une séance de kinésithérapie à domicile à Tanger :\n\n`;
     msg += `👤 *Patient :* ${patientName}\n`;
     msg += `📞 *Téléphone :* ${phone}\n`;
@@ -116,9 +111,6 @@ export function generatePatientWhatsAppLink({
   return `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
 }
 
-/**
- * Génère le message WhatsApp d'arrivée pour le kiné
- */
 export function generateKineArrivalWhatsAppLink(patientPhone, patientName) {
   const number = formatWhatsAppNumber(patientPhone);
   const msg = `Bonjour ${patientName || ''}, je suis Ibrahim votre kinésithérapeute. Je suis en route et j'arrive à votre domicile dans environ 10 minutes. À tout de suite !`;

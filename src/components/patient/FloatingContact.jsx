@@ -23,7 +23,6 @@ export default function FloatingContact() {
 
   return (
     <div className={`fixed bottom-4 ${isRTL ? 'left-4' : 'right-4'} z-40 flex flex-col gap-2.5 items-end`}>
-      {/* Bouton WhatsApp Flottant */}
       <a
         href={directWhatsAppUrl}
         target="_blank"

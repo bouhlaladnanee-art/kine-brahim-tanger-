@@ -40,17 +40,12 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const { t, isRTL, currentLanguage } = useLanguage();
   const navigate = useNavigate();
   
-  // Tunnel optimisé en 2 étapes rapides
-  // Étape 1 : Soin & Quartier
-  // Étape 2 : Créneau & Coordonnées
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAppointment, setSubmittedAppointment] = useState(null);
 
-  // Section dépliable facultative pour l'adresse détaillée & ordonnance à l'étape 1
   const [showOptionalDetails, setShowOptionalDetails] = useState(false);
 
-  // Disponibilités en direct synchronisées avec Supabase Realtime
   const [availableDates, setAvailableDates] = useState(() => availabilityService.getAvailableUpcomingDates(14));
 
   useEffect(() => {
@@ -65,7 +60,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const initialSlots = availabilityService.getAvailableSlotsForDate(initialDate);
   const initialSlotId = initialSlots.length > 0 ? initialSlots[0].id : '';
 
-  // Form State
   const [formData, setFormData] = useState({
     careTypeId: initialCareType || CARE_TYPES[0].id,
     prescriptionFile: null,
@@ -87,10 +81,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const [validationError, setValidationError] = useState('');
   const [submitFailed, setSubmitFailed] = useState(false);
 
-  // Créneaux ouverts pour la date sélectionnée
   const activeDateSlots = availabilityService.getAvailableSlotsForDate(formData.date);
 
-  // Mise à jour de la date avec ajustement du créneau
   const handleSelectDate = (dateIso) => {
     const slots = availabilityService.getAvailableSlotsForDate(dateIso);
     const hasCurrentSlot = slots.some(s => s.id === formData.timeSlotId);
@@ -102,7 +94,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }));
   };
 
-  // Upload d'ordonnance médicale
   const handlePrescriptionUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -132,7 +123,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }));
   };
 
-  // Géolocalisation Tanger
   const handleCaptureGPS = async () => {
     setGpsLoading(true);
     setGpsError(null);
@@ -152,7 +142,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }
   };
 
-  // Navigation entre les 2 étapes
   const handleNext = () => {
     setValidationError('');
     if (step === 1) {
@@ -179,7 +168,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }
   };
 
-  // Soumission finale de la réservation
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setValidationError('');
@@ -251,9 +239,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const currentNeighborhood = TANGER_NEIGHBORHOODS.find(n => n.id === formData.neighborhoodId);
   const currentSlot = TIME_SLOTS.find(s => s.id === formData.timeSlotId);
 
-  // ----------------------------------------------------
-  // ÉCRAN DE CONFIRMATION FINAL (AVEC BOUTON WHATSAPP)
-  // ----------------------------------------------------
   if (submittedAppointment) {
     const waLink = generatePatientWhatsAppLink({
       patientName: submittedAppointment.patientName,
@@ -273,7 +258,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     return (
       <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between space-y-6 bg-white min-h-[80vh]">
         <div className="space-y-6 text-center pt-4 max-w-md mx-auto w-full">
-          {/* Cercle d'approbation */}
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm ring-8 ring-emerald-50">
             <Check className="w-8 h-8 stroke-[3]" />
           </div>
@@ -290,7 +274,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </p>
           </div>
 
-          {/* Récapitulatif clair & synthétique */}
           <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left space-y-2.5 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Patient :</span>
@@ -317,7 +300,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </p>
           </div>
 
-          {/* GROS BOUTON VERT WHATSAPP */}
           <div className="space-y-3 pt-2">
             <a
               href={waLink}
@@ -348,7 +330,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           </div>
         </div>
 
-        {/* Bouton retour accueil */}
         <div className="pt-4 border-t border-slate-100 text-center">
           <Button
             variant="ghost"
@@ -363,12 +344,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     );
   }
 
-  // ----------------------------------------------------
-  // TUNNEL EN 2 ÉTAPES RAPIDES & INTUITIVES
-  // ----------------------------------------------------
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Barre supérieure du formulaire */}
       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <button
           type="button"
@@ -388,7 +365,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         </span>
       </div>
 
-      {/* Barre de progression épurée */}
       <div className="w-full bg-slate-100 h-1">
         <div 
           className="bg-primary h-full transition-all duration-300 rounded-r-full"
@@ -396,7 +372,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         />
       </div>
 
-      {/* Contenu de l'étape */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
         {validationError && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2">
@@ -429,9 +404,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           </a>
         )}
 
-        {/* ------------------------------------------------------------ */}
-        {/* ÉTAPE 1 : MOTIF DE SOIN & QUARTIER                          */}
-        {/* ------------------------------------------------------------ */}
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
@@ -443,7 +415,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </p>
             </div>
 
-            {/* Choix du soin (5 cartes simples et lisibles) */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-text-main block">
                 Type de rééducation souhaité <span className="text-rose-500">*</span>
@@ -477,7 +448,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </div>
             </div>
 
-            {/* Quartier à Tanger */}
             <div className="space-y-1.5 pt-2">
               <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-primary" />
@@ -496,7 +466,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </select>
             </div>
 
-            {/* Détails facultatifs (Accordéon dépliable pour ne pas surcharger) */}
             <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
               <button
                 type="button"
@@ -516,7 +485,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
 
               {showOptionalDetails && (
                 <div className="p-4 border-t border-slate-200 space-y-4 bg-white">
-                  {/* Précisions d'adresse */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-text-main">
                       Précisions d'adresse (Résidence, Étage, Porte, Repère)
@@ -530,7 +498,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                     />
                   </div>
 
-                  {/* Bouton GPS Tanger */}
                   <div className="flex items-center justify-between gap-3 pt-1">
                     <Button
                       type="button"
@@ -548,7 +515,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                     )}
                   </div>
 
-                  {/* Upload photo ordonnance */}
                   <div className="space-y-1.5 pt-2 border-t border-slate-100">
                     <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                       <Camera className="w-4 h-4 text-primary" />
@@ -592,7 +558,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               )}
             </div>
 
-            {/* Tarif informatif discret */}
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs text-slate-600 flex items-center justify-between">
               <span className="font-semibold">Tarif indicatif :</span>
               <span className="font-bold text-slate-900">À partir de {PRACTITIONER_INFO.basePriceMAD} DH • Paiement sur place</span>
@@ -600,9 +565,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           </div>
         )}
 
-        {/* ------------------------------------------------------------ */}
-        {/* ÉTAPE 2 : DATE, CRÉNEAU & VOS COORDONNÉES                    */}
-        {/* ------------------------------------------------------------ */}
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
@@ -614,7 +576,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </p>
             </div>
 
-            {/* 1. Sélection de la Date */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-primary" />
@@ -667,7 +628,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               )}
             </div>
 
-            {/* 2. Créneaux disponibles pour la date */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
@@ -743,7 +703,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               )}
             </div>
 
-            {/* 3. Coordonnées du patient */}
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <label className="text-xs font-bold text-text-main block">
                 Vos coordonnées de contact
@@ -794,7 +753,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </div>
             </div>
 
-            {/* Récapitulatif clair avant validation */}
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2 text-xs">
               <span className="font-bold text-text-main block">
                 {t('summaryTitle')}
@@ -811,7 +769,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         )}
       </div>
 
-      {/* Barre d'action fixe en bas */}
       <div className="p-4 border-t border-slate-100 bg-white/95 backdrop-blur-md safe-bottom">
         {step === 1 ? (
           <Button

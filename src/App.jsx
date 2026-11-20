@@ -15,15 +15,12 @@ export default function App() {
         <BrowserRouter>
           <MobileContainer>
             <Routes>
-              {/* Espace Patient */}
               <Route path="/" element={<PatientHome />} />
               <Route path="/suivi/:token" element={<BookingTracking />} />
 
-              {/* Espace Kiné Admin */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
 
-              {/* Redirection fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </MobileContainer>

@@ -1,18 +1,13 @@
-// Service Unifié pour la gestion des Rendez-vous (Supabase / Fallback Mock)
 import { supabase, isSupabaseConfigured } from './supabase';
 import { mockStorage } from './mockStorage';
 
 export const appointmentService = {
-  /**
-   * Crée un nouveau rendez-vous dans Supabase (avec upload d'ordonnance sur Storage si fournie)
-   */
   create: async (appointmentData, prescriptionFile = null) => {
     let prescriptionUrl = null;
     let prescriptionFileName = null;
 
     if (isSupabaseConfigured && supabase) {
       try {
-        // Upload sur Supabase Storage si une ordonnance est jointe
         if (prescriptionFile) {
           const safeName = prescriptionFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
           const filePath = `${Date.now()}_${safeName}`;
@@ -78,9 +73,6 @@ export const appointmentService = {
     }
   },
 
-  /**
-   * Suivi patient : lit UNE demande via son jeton (fonction SQL sécurisée)
-   */
   getByToken: async (token) => {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.rpc('get_appointment_by_token', { p_token: token });
@@ -90,27 +82,18 @@ export const appointmentService = {
     return mockStorage.getAll().find(a => a.trackingToken === token) || null;
   },
 
-  /**
-   * Suivi patient : accepte (true) ou refuse (false) l'horaire proposé par le kiné
-   */
   respondToProposal: async (token, accept) => {
     const { data, error } = await supabase.rpc('respond_to_proposal', { p_token: token, p_accept: accept });
     if (error) throw error;
     return data;
   },
 
-  /**
-   * Suivi patient : annulation de sa propre demande
-   */
   cancelByToken: async (token) => {
     const { data, error } = await supabase.rpc('cancel_appointment_by_token', { p_token: token });
     if (error) throw error;
     return data;
   },
 
-  /**
-   * Admin : propose un autre horaire au patient (la demande reste "en attente")
-   */
   proposeNewTime: async (id, { date, timeSlot, timeSlotLabel, message }) => {
     const { error } = await supabase
       .from('appointments')
@@ -127,9 +110,6 @@ export const appointmentService = {
     return true;
   },
 
-  /**
-   * Écoute en temps réel les rendez-vous (Supabase Realtime)
-   */
   subscribe: (callback, onError = () => {}) => {
     if (isSupabaseConfigured && supabase) {
       // Jamais de données de démo ici : en cas d'erreur, on le signale au praticien
@@ -168,9 +148,6 @@ export const appointmentService = {
     }
   },
 
-  /**
-   * Met à jour le statut d'un rendez-vous ('confirme', 'accompli', 'annule')
-   */
   updateStatus: async (id, newStatus) => {
     if (isSupabaseConfigured && supabase) {
       try {
@@ -193,9 +170,6 @@ export const appointmentService = {
   }
 };
 
-/**
- * Normalise les clés snake_case Supabase → camelCase pour l'app
- */
 function newTrackingToken() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   // Repli pour anciens navigateurs (UUID v4)

@@ -4,7 +4,6 @@ import { ChevronRight } from 'lucide-react';
 import { appointmentService } from '../../services/appointmentService';
 import { getMyBookings, removeMyBooking, formatDateLong } from '../../utils/myBookings';
 
-// Libellé + couleur du statut, vu côté patient
 function statusChip(apt) {
   if (!apt) return { label: '…', cls: 'bg-slate-100 text-slate-500' };
   if (apt.status === 'annule') return { label: 'Annulée', cls: 'bg-slate-100 text-slate-600' };

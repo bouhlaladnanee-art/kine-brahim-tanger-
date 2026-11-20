@@ -1,4 +1,3 @@
-// Service de gestion et persistance des factures (Synchrone localStorage + Sync Supabase en arrière-plan)
 import { supabase, isSupabaseConfigured } from './supabase';
 
 const INVOICE_STORAGE_KEY = 'kine_tanger_invoices_v1';
@@ -77,7 +76,6 @@ function saveLocalInvoices(list) {
   } catch {}
 }
 
-// Synchronisation initiale silencieuse depuis Supabase en tâche de fond
 if (isSupabaseConfigured && supabase) {
   supabase
     .from('invoices')
@@ -116,7 +114,6 @@ export const invoiceService = {
     const updated = [newInvoice, ...list];
     saveLocalInvoices(updated);
 
-    // Sync en arrière-plan vers Supabase
     if (isSupabaseConfigured && supabase) {
       supabase
         .from('invoices')
