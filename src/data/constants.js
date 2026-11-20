@@ -1,14 +1,21 @@
 // Données constantes pour l'application Kiné Tanger
 
+// Numéro du praticien : une seule source, VITE_KINE_PHONE (format international sans +, ex. 2126XXXXXXXX)
+const KINE_PHONE_INTL = String(import.meta.env.VITE_KINE_PHONE || '').replace(/\D/g, '');
+if (!KINE_PHONE_INTL || KINE_PHONE_INTL === '212661000000') {
+  console.warn('[Kiné Tanger] VITE_KINE_PHONE manquant ou fictif : les boutons Appel/WhatsApp ne joindront pas le praticien.');
+}
+const KINE_PHONE_LOCAL = KINE_PHONE_INTL.startsWith('212') ? '0' + KINE_PHONE_INTL.slice(3) : KINE_PHONE_INTL;
+
 export const PRACTITIONER_INFO = {
   name: "BOUHLAL Ibrahim",
   title: "Kinésithérapeute Diplômé d'État",
   subtitle: "Soins & Rééducation exclusivement à domicile",
   city: "Tanger, Maroc",
-  phone: "+212661000000",
-  phoneDisplay: "06 61 00 00 00",
-  whatsappNumber: "212661000000",
-  basePriceMAD: 200,
+  phone: `+${KINE_PHONE_INTL}`,
+  phoneDisplay: KINE_PHONE_LOCAL.replace(/(\d{2})(?=\d)/g, '$1 ').trim(),
+  whatsappNumber: KINE_PHONE_INTL,
+  basePriceMAD: Number(import.meta.env.VITE_KINE_PRICE_START) || 200,
   experienceYears: "8+",
   diploma: "Diplômé de l'Institut Supérieur des Professions Infirmières et Techniques de Santé (ISPITS)",
   bio: "Prise en charge personnalisée à votre domicile à Tanger. Ponctualité, hygiène rigoureuse et écoute attentive pour soulager vos douleurs et restaurer votre mobilité.",

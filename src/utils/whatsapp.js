@@ -1,7 +1,8 @@
 // Utilitaire de génération des liens WhatsApp multilingue pour Tanger
 
 export function formatWhatsAppNumber(phone) {
-  if (!phone) return '212661000000';
+  // Sans numéro : chaîne vide → wa.me laisse choisir le contact (jamais un numéro par défaut)
+  if (!phone) return '';
   const clean = phone.replace(/\D/g, '');
   if (clean.startsWith('0')) {
     return '212' + clean.slice(1);
@@ -25,7 +26,7 @@ export function generatePatientWhatsAppLink({
   timeSlotLabel,
   hasPrescription = false,
   coordinates = null,
-  kinePhone = '212661000000',
+  kinePhone = '',
   language = 'fr'
 }) {
   const number = formatWhatsAppNumber(kinePhone);

@@ -7,11 +7,11 @@ import { PRACTITIONER_INFO } from '../data/constants';
 
 export default function AdminLogin() {
   const [authMode, setAuthMode] = useState('email'); // 'email' | 'phone'
-  const [email, setEmail] = useState('ibrahim@kine-tanger.ma');
-  const [password, setPassword] = useState('Kine@Tanger2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   
   // Phone auth state
-  const [phoneNumber, setPhoneNumber] = useState('+212661000000');
+  const [phoneNumber, setPhoneNumber] = useState('+212');
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);

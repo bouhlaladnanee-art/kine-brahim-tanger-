@@ -208,8 +208,7 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
 3. **Architecture réactive dans `availabilityService.js` :** Système de souscription (`subscribe`) et écouteur WebSocket en direct. Dès qu'Ibrahim clique sur un créneau au Maroc, le changement est répercuté instantanément sur les écrans des patients en France ou ailleurs sans recharger la page.
 4. **Compte officiel Ibrahim créé dans Supabase Auth :**
    - Email : `ibrahim@kine-tanger.ma`
-   - Mot de passe : `Kine@Tanger2026`
-   - Pré-rempli sur la page de connexion `/admin/login`.
+   - Mot de passe : géré dans Supabase Auth (jamais dans le code ni la doc ; l'ancien mot de passe publié doit être changé).
 5. **Feedbacks visuels Cloud dans l'admin :** Confirmation immédiate « ✅ Synchronisé en direct sur le Cloud ! » pour Ibrahim.
 
 

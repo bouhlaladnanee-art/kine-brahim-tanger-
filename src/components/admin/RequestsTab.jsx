@@ -104,7 +104,7 @@ export default function RequestsTab({
                   </div>
                   <div className="bg-slate-50 p-2 rounded-xl flex items-center gap-1.5 text-text-main">
                     <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span className="font-semibold truncate">{apt.timeSlotLabel.split('(')[0].trim()}</span>
+                    <span className="font-semibold truncate">{(apt.timeSlotLabel || 'Créneau à préciser').split('(')[0].trim()}</span>
                   </div>
                 </div>
 

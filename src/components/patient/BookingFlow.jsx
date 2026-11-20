@@ -82,6 +82,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const [gpsSuccess, setGpsSuccess] = useState(false);
   const [gpsError, setGpsError] = useState(null);
   const [validationError, setValidationError] = useState('');
+  const [submitFailed, setSubmitFailed] = useState(false);
 
   // Créneaux ouverts pour la date sélectionnée
   const activeDateSlots = availabilityService.getAvailableSlotsForDate(formData.date);
@@ -179,6 +180,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setValidationError('');
+    setSubmitFailed(false);
 
     if (!formData.date || !formData.timeSlotId) {
       setValidationError("Veuillez choisir une date et un créneau.");
@@ -218,6 +220,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         timeSlot: formData.timeSlotId,
         timeSlotLabel: formData.timeSlotCustomLabel || (selectedSlot ? `${selectedSlot.label} (${selectedSlot.hours})` : 'Plage convenue'),
         notes: formData.notes.trim(),
+        language: currentLanguage,
       };
 
       const saved = await appointmentService.create(appointmentRecord, formData.prescriptionFile);
@@ -228,7 +231,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         onCompleted(saved);
       }
     } catch (err) {
-      setValidationError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+      setValidationError("Votre demande n'a pas pu être envoyée (connexion). Réessayez, ou écrivez directement à Ibrahim sur WhatsApp.");
+      setSubmitFailed(true);
       setIsSubmitting(false);
     }
   };
@@ -374,6 +378,30 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
             <span>{validationError}</span>
           </div>
+        )}
+
+        {submitFailed && (
+          <a
+            href={generatePatientWhatsAppLink({
+              patientName: formData.patientName.trim(),
+              phone: formData.phone.trim(),
+              careTypeTitle: currentCare ? currentCare.title : '',
+              neighborhoodName: currentNeighborhood ? currentNeighborhood.name : 'Tanger',
+              addressDetails: formData.addressDetails.trim(),
+              dateFormatted: formData.date,
+              timeSlotLabel: currentSlot ? `${currentSlot.label} (${currentSlot.hours})` : '',
+              hasPrescription: !!formData.prescriptionFile,
+              coordinates: formData.geoCoordinates,
+              kinePhone: PRACTITIONER_INFO.whatsappNumber,
+              language: currentLanguage
+            })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-sm py-3 px-4 rounded-2xl"
+          >
+            <MessageCircle className="w-4 h-4 fill-current" />
+            <span>Envoyer ma demande par WhatsApp</span>
+          </a>
         )}
 
         {/* ------------------------------------------------------------ */}

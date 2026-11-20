@@ -139,7 +139,7 @@ export default function TourTodayTab({ appointments, onUpdateStatus }) {
                   </div>
 
                   <Badge status={apt.status} size="sm">
-                    {isAccomplished ? 'Accompli' : apt.timeSlotLabel.split(' ')[0]}
+                    {isAccomplished ? 'Accompli' : (apt.timeSlotLabel || 'À préciser').split(' ')[0]}
                   </Badge>
                 </div>
 

@@ -16,34 +16,46 @@ export const appointmentService = {
         if (prescriptionFile) {
           const safeName = prescriptionFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
           const filePath = `${Date.now()}_${safeName}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('prescriptions')
             .upload(filePath, prescriptionFile);
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            // L'échec d'upload de l'ordonnance ne doit pas bloquer la réservation
+            console.error("Échec de l'upload de l'ordonnance :", uploadError);
+          } else {
+            const { data: urlData } = supabase.storage
+              .from('prescriptions')
+              .getPublicUrl(filePath);
 
-          const { data: urlData } = supabase.storage
-            .from('prescriptions')
-            .getPublicUrl(filePath);
-
-          prescriptionUrl = urlData?.publicUrl || null;
-          prescriptionFileName = prescriptionFile.name;
+            prescriptionUrl = urlData?.publicUrl || null;
+            prescriptionFileName = prescriptionFile.name;
+          }
         }
+
+        // Les champs quartier / adresse / GPS n'ont pas de colonne dédiée :
+        // ils sont sérialisés en JSON dans patient_address (relu par normalizeAppointment).
+        const location = {
+          neighborhood: appointmentData.neighborhood || null,
+          neighborhoodName: appointmentData.neighborhoodName || null,
+          addressDetails: appointmentData.addressDetails || '',
+          geoCoordinates: appointmentData.geoCoordinates || null,
+        };
 
         const { data, error } = await supabase
           .from('appointments')
           .insert([{
-            patient_name: appointmentData.patientName || appointmentData.patient_name,
-            patient_phone: appointmentData.patientPhone || appointmentData.patient_phone,
-            patient_address: appointmentData.patientAddress || appointmentData.patient_address,
-            care_type: appointmentData.careType || appointmentData.care_type,
-            care_type_title: appointmentData.careTypeTitle || appointmentData.care_type_title,
+            patient_name: appointmentData.patientName,
+            patient_phone: appointmentData.phone || appointmentData.patientPhone || null,
+            patient_address: JSON.stringify(location),
+            care_type: appointmentData.careType,
+            care_type_title: appointmentData.careTypeTitle,
             date: appointmentData.date,
-            time_slot: appointmentData.timeSlot || appointmentData.time_slot,
-            time_slot_hours: appointmentData.timeSlotHours || appointmentData.time_slot_hours,
+            time_slot: appointmentData.timeSlot,
+            time_slot_hours: appointmentData.timeSlotLabel || null,
             notes: appointmentData.notes,
-            prescription_url: prescriptionUrl || appointmentData.prescriptionUrl || null,
-            prescription_file_name: prescriptionFileName || appointmentData.prescriptionFileName || null,
+            prescription_url: prescriptionUrl,
+            prescription_file_name: prescriptionFileName,
             status: 'en_attente',
             language: appointmentData.language || 'fr',
           }])
@@ -55,8 +67,10 @@ export const appointmentService = {
         // Normaliser les clés pour compatibilité avec le reste de l'app
         return normalizeAppointment(data);
       } catch (error) {
-        console.error('Erreur Supabase lors de la création, bascule locale :', error);
-        return mockStorage.create(appointmentData);
+        // Ne jamais simuler un succès : sinon le patient croit avoir réservé
+        // alors que le kiné ne reçoit rien. L'appelant affiche l'erreur.
+        console.error('Erreur Supabase lors de la création du rendez-vous :', error);
+        throw error;
       }
     } else {
       return mockStorage.create(appointmentData);
@@ -132,17 +146,33 @@ export const appointmentService = {
 /**
  * Normalise les clés snake_case Supabase → camelCase pour l'app
  */
+function parseLocation(raw) {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return parsed;
+  } catch {
+    // Anciennes lignes : adresse en texte libre
+  }
+  return { addressDetails: String(raw) };
+}
+
 function normalizeAppointment(row) {
+  const location = parseLocation(row.patient_address);
   return {
     id: row.id,
     patientName: row.patient_name,
-    patientPhone: row.patient_phone,
-    patientAddress: row.patient_address,
+    phone: row.patient_phone || '',
+    patientPhone: row.patient_phone || '',
+    neighborhood: location.neighborhood || null,
+    neighborhoodName: location.neighborhoodName || 'Tanger',
+    addressDetails: location.addressDetails || '',
+    geoCoordinates: location.geoCoordinates || null,
     careType: row.care_type,
     careTypeTitle: row.care_type_title,
     date: row.date,
     timeSlot: row.time_slot,
-    timeSlotHours: row.time_slot_hours,
+    timeSlotLabel: row.time_slot_hours || '',
     notes: row.notes,
     prescriptionUrl: row.prescription_url,
     prescriptionFileName: row.prescription_file_name,
