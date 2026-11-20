@@ -158,3 +158,33 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
    - Build Vite de production validé (0 erreur).
    - Déployé en direct sur Firebase Hosting : [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app).
    - Pushé sur GitHub : [https://github.com/bouhlaladnanee-art/kine-brahim-tanger-](https://github.com/bouhlaladnanee-art/kine-brahim-tanger-).
+
+
+---
+
+## [Mise à Jour 8 — Design Unslop, Suppression Matériel/Badges/Kiné Respiratoire & Système Disponibilités Week-ends/Soirées]
+**Date & Heure :** 20 Novembre 2026 à 19:50  
+**Statut :** ✅ Validé, Compilé & Déployé en Ligne
+
+### Réalisations :
+1. **Application des principes Unslop (heydamir/unslop) :**
+   - Élimination des effets décoratifs IA génériques (halos lumineux blur-3xl superflus, badges e-commerce inappropriés pour un praticien de santé).
+   - Remplacement du monogramme avatar par les initiales officielles « BI » (BOUHLAL Ibrahim).
+   - Typographie épurée, contrastes calmes et présentation médicale digne et humaine.
+2. **Suppression intégrale de toute mention de matériel :**
+   - Retrait de « matériel de rééducation » dans la bio du praticien.
+   - Remplacement de « Matériel apporté à domicile » par « Déplacement à domicile inclus dans Tanger » dans toutes les langues (FR, AR, EN, ES).
+   - Réécriture des protocoles d'hygiène sans mention d'équipement.
+   - Adaptation du conseil d'ordonnance et des consignes d'accès d'immeuble.
+3. **Suppression des badges marketing et de la kiné respiratoire :**
+   - Retrait des badges « Très demandé » et « Soulagement rapide ».
+   - Suppression totale de la spécialité « Kiné respiratoire » du catalogue, des formulaires et des 4 dictionnaires linguistiques.
+4. **Nouveau système intelligent de disponibilités (Week-ends & Soirées) :**
+   - **Week-ends (Samedi & Dimanche) :** Grande disponibilité ouverte toute la journée (Matinée 09h–12h, Après-midi 14h–17h, Fin de journée 17h–20h).
+   - **En semaine (Lundi à Vendredi) :** Créneau régulier garanti uniquement en Soirée (17h–20h).
+   - **Créneau en journée en semaine (au cas où) :** Module dédié sous réserve de confirmation préalable (« Matinée » ou « Dès 14h ») évitant les réservations directes non souhaitées tout en laissant la possibilité de convenir d'une visite spécifique.
+   - Mise à jour de la table Supabase `availability` et du service frontend synchrone.
+5. **Déploiement en Production :**
+   - Build Vite propre (0 erreur).
+   - Déployé en direct sur Firebase Hosting : [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app).
+   - Synchronisé sur GitHub : [https://github.com/bouhlaladnanee-art/kine-brahim-tanger-](https://github.com/bouhlaladnanee-art/kine-brahim-tanger-).
