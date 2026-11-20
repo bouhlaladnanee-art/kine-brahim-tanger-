@@ -2,18 +2,20 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { TIME_SLOTS } from '../data/constants';
 
-const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v2';
+const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v3';
 const AVAILABILITY_ROW_ID = '00000000-0000-0000-0000-000000000001';
 
-// Par défaut : Week-ends complets (Samedi & Dimanche) + Soirées en semaine (17h-20h)
-const DEFAULT_WEEKLY_TEMPLATE = {
-  1: ['fin_journee'],                         // Lundi : Soirée 17h-20h
-  2: ['fin_journee'],                         // Mardi : Soirée 17h-20h
-  3: ['fin_journee'],                         // Mercredi : Soirée 17h-20h
-  4: ['fin_journee'],                         // Jeudi : Soirée 17h-20h
-  5: ['fin_journee'],                         // Vendredi : Soirée 17h-20h
-  6: ['matin', 'apres_midi', 'fin_journee'], // Samedi : Toute la journée
-  0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Toute la journée
+// Configuration par défaut demandée par le praticien :
+// - En semaine (Lundi à Vendredi) : CRÉNEAUX VIDES par défaut (déverrouillables depuis /admin)
+// - Le week-end (Samedi & Dimanche) : TOUT ACTIVÉ par défaut (Matin, Après-midi, Soirée)
+export const DEFAULT_WEEKLY_TEMPLATE = {
+  1: [],                                      // Lundi : Vides par défaut
+  2: [],                                      // Mardi : Vides par défaut
+  3: [],                                      // Mercredi : Vides par défaut
+  4: [],                                      // Jeudi : Vides par défaut
+  5: [],                                      // Vendredi : Vides par défaut
+  6: ['matin', 'apres_midi', 'fin_journee'], // Samedi : Tout activé par défaut
+  0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Tout activé par défaut
 };
 
 // ─── Gestion des écouteurs réactifs (listeners) ──────────────────────────────
@@ -133,7 +135,6 @@ export const availabilityService = {
   // Abonnement réactif pour les composants React (LandingHero, BookingFlow, etc.)
   subscribe: (callback) => {
     listeners.add(callback);
-    // Appel immédiat avec la configuration actuelle
     callback(availabilityService.getConfig());
     return () => listeners.delete(callback);
   },
@@ -151,6 +152,7 @@ export const availabilityService = {
     return result;
   },
 
+  // Basculer un créneau individuel pour un jour de la semaine
   toggleWeeklySlot: async (dayIndex, slotId) => {
     const config = availabilityService.getConfig();
     const current = config.weeklyTemplate[dayIndex] || [];
@@ -160,6 +162,43 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
+  // Activer ou désactiver tous les créneaux d'un jour donné
+  setDaySlots: async (dayIndex, slotIds) => {
+    const config = availabilityService.getConfig();
+    config.weeklyTemplate[dayIndex] = [...slotIds];
+    return availabilityService.saveConfig(config);
+  },
+
+  // Déverrouiller tous les créneaux en semaine (Lundi à Vendredi)
+  unlockAllWeekdays: async () => {
+    const config = availabilityService.getConfig();
+    const allSlots = ['matin', 'apres_midi', 'fin_journee'];
+    for (let i = 1; i <= 5; i++) {
+      config.weeklyTemplate[i] = [...allSlots];
+    }
+    return availabilityService.saveConfig(config);
+  },
+
+  // Verrouiller tous les créneaux en semaine (remise à vide par défaut)
+  lockAllWeekdays: async () => {
+    const config = availabilityService.getConfig();
+    for (let i = 1; i <= 5; i++) {
+      config.weeklyTemplate[i] = [];
+    }
+    return availabilityService.saveConfig(config);
+  },
+
+  // Réinitialiser au profil par défaut : Week-ends complets, semaine vide
+  resetToDefaults: async () => {
+    const config = {
+      weeklyTemplate: JSON.parse(JSON.stringify(DEFAULT_WEEKLY_TEMPLATE)),
+      customDates: {},
+      blockedDates: [],
+    };
+    return availabilityService.saveConfig(config);
+  },
+
+  // Ajustement pour une date spécifique
   toggleCustomDateSlot: async (dateISO, slotId) => {
     const config = availabilityService.getConfig();
     const current = availabilityService.getAvailableSlotsForDate(dateISO).map(s => s.id);
@@ -169,6 +208,7 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
+  // Bloquer / Débloquer une journée entière
   toggleBlockDate: async (dateISO) => {
     const config = availabilityService.getConfig();
     const blocked = config.blockedDates || [];
@@ -178,6 +218,7 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
+  // Retourne les créneaux ouverts pour une date donnée
   getAvailableSlotsForDate: (dateISO) => {
     const config = availabilityService.getConfig();
     if (config.blockedDates?.includes(dateISO)) return [];
@@ -188,10 +229,7 @@ export const availabilityService = {
     return TIME_SLOTS.filter(s => (config.weeklyTemplate[day] || []).includes(s.id));
   },
 
-  getDaytimeOnDemandSlots: () => {
-    return TIME_SLOTS.filter(s => s.isDaytime);
-  },
-
+  // Retourne les prochaines dates avec au moins 1 créneau ouvert
   getAvailableUpcomingDates: (daysAhead = 14) => {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
@@ -201,8 +239,8 @@ export const availabilityService = {
       d.setDate(d.getDate() + i);
       const iso = d.toISOString().split('T')[0];
       const slots = availabilityService.getAvailableSlotsForDate(iso);
+      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
       if (slots.length > 0) {
-        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
         result.push({
           iso,
           label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`,
@@ -217,13 +255,14 @@ export const availabilityService = {
     return result;
   },
 
+  // Texte synthétique de disponibilité affiché sur la page d'accueil
   getNextAvailabilityText: () => {
-    const upcoming = availabilityService.getAvailableUpcomingDates(7);
-    if (upcoming.length === 0) return 'Week-ends & Soirées sur RDV';
+    const upcoming = availabilityService.getAvailableUpcomingDates(14);
+    if (upcoming.length === 0) return 'Week-ends ouverts • Semaine sur demande';
     const first = upcoming[0];
     if (first.sublabel === "Aujourd'hui") return `Aujourd'hui dès ${first.slots[0].hours.split('–')[0].trim()}`;
-    if (first.sublabel === 'Demain') return `Demain dès ${first.slots[0].hours.split('–')[0].trim()}`;
-    if (first.isWeekend) return `${first.label} (Week-end)`;
+    if (first.sublabel === 'Demain') return `Demain (${first.label.split(' ')[0]}) dès ${first.slots[0].hours.split('–')[0].trim()}`;
+    if (first.isWeekend) return `${first.label} (Week-end ouvert)`;
     return `${first.label} dès ${first.slots[0].hours.split('–')[0].trim()}`;
   },
 };

@@ -625,16 +625,34 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                     Week-end ouvert
                   </span>
-                ) : (
+                ) : activeDateSlots.length > 0 ? (
                   <span className="text-[10px] font-bold text-primary bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full">
-                    Soirée dès 17h
+                    Créneau ouvert en semaine
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                    Créneaux vides par défaut
                   </span>
                 )}
               </div>
 
               {activeDateSlots.length === 0 ? (
-                <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center text-xs text-text-muted">
-                  Aucun créneau ouvert pour cette date. Choisissez une autre date ci-dessus.
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center space-y-2.5">
+                  <p className="text-xs font-semibold text-text-main">
+                    Aucun créneau ouvert pour cette date
+                  </p>
+                  <p className="text-[11px] text-text-muted leading-relaxed">
+                    Ibrahim exerce principalement les week-ends (toute la journée). Pour convenir d’une séance en semaine ou à un horaire sur mesure, vous pouvez lui écrire directement.
+                  </p>
+                  <a
+                    href={`https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent("Bonjour Ibrahim, je souhaite convenir d'une séance de kiné à domicile pour le " + formData.date + " à Tanger.")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                    <span>Demander cette date sur WhatsApp</span>
+                  </a>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
@@ -668,56 +686,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                       </div>
                     );
                   })}
-                </div>
-              )}
-
-              {/* Créneau en journée en semaine sur demande */}
-              {(new Date(formData.date + 'T00:00:00').getDay() >= 1 && new Date(formData.date + 'T00:00:00').getDay() <= 5) && (
-                <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2">
-                  <p className="text-xs font-bold text-text-main">
-                    Besoin d'un créneau en journée en semaine ?
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({
-                        ...formData,
-                        timeSlotId: 'matin_sur_demande',
-                        timeSlotCustomLabel: 'Matinée (09h00 – 12h00) • Sur confirmation préalable'
-                      })}
-                      className={`p-2.5 rounded-xl border text-left transition-all ${
-                        formData.timeSlotId === 'matin_sur_demande'
-                          ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-text-main">Matinée</span>
-                        <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
-                      </div>
-                      <span className="text-[10px] text-text-muted block mt-0.5">09h00 – 12h00</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setFormData({
-                        ...formData,
-                        timeSlotId: 'apres_midi_sur_demande',
-                        timeSlotCustomLabel: 'Après-midi (14h00 – 17h00) • Sur confirmation préalable'
-                      })}
-                      className={`p-2.5 rounded-xl border text-left transition-all ${
-                        formData.timeSlotId === 'apres_midi_sur_demande'
-                          ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-text-main">Après-midi</span>
-                        <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
-                      </div>
-                      <span className="text-[10px] text-text-muted block mt-0.5">14h00 – 17h00</span>
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

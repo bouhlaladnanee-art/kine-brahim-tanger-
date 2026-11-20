@@ -69,21 +69,21 @@ export const TIME_SLOTS = [
     id: 'matin',
     label: 'Matinée',
     hours: '09h00 – 12h00',
-    description: 'Week-ends (ou en semaine sur confirmation)',
+    description: 'Séance en matinée (09h00 – 12h00)',
     isDaytime: true,
   },
   {
     id: 'apres_midi',
     label: 'Après-midi',
     hours: '14h00 – 17h00',
-    description: 'Week-ends (ou en semaine dès 14h sur confirmation)',
+    description: 'Séance l’après-midi (14h00 – 17h00)',
     isDaytime: true,
   },
   {
     id: 'fin_journee',
-    label: 'Soirée / Fin de journée',
+    label: 'Soirée',
     hours: '17h00 – 20h00',
-    description: 'Créneau régulier garanti en semaine & week-ends',
+    description: 'Séance en soirée (17h00 – 20h00)',
     isEvening: true,
   }
 ];
