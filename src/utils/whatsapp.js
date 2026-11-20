@@ -27,7 +27,8 @@ export function generatePatientWhatsAppLink({
   hasPrescription = false,
   coordinates = null,
   kinePhone = '',
-  language = 'fr'
+  language = 'fr',
+  trackingUrl = ''
 }) {
   const number = formatWhatsAppNumber(kinePhone);
 
@@ -50,6 +51,7 @@ export function generatePatientWhatsAppLink({
     if (hasPrescription) {
       msg += `📄 *الوصفة الطبية :* مرفقة مع طلبي\n`;
     }
+    if (trackingUrl) msg += `🔎 *تتبع الطلب :* ${trackingUrl}\n`;
     msg += `\nشكراً لتأكيد موعد مروركم الكريم!`;
   } else if (language === 'en') {
     msg = `Hello Ibrahim, I have just booked an in-home physiotherapy session in Tangier:\n\n`;
@@ -68,6 +70,7 @@ export function generatePatientWhatsAppLink({
     if (hasPrescription) {
       msg += `📄 *Prescription:* Photo attached in booking\n`;
     }
+    if (trackingUrl) msg += `🔎 *Track my booking:* ${trackingUrl}\n`;
     msg += `\nThank you for confirming your visit!`;
   } else if (language === 'es') {
     msg = `Hola Ibrahim, acabo de solicitar una cita de fisioterapia a domicilio en Tánger:\n\n`;
@@ -86,6 +89,7 @@ export function generatePatientWhatsAppLink({
     if (hasPrescription) {
       msg += `📄 *Prescripción:* Volante adjunto en la solicitud\n`;
     }
+    if (trackingUrl) msg += `🔎 *Seguimiento:* ${trackingUrl}\n`;
     msg += `\n¡Muchas gracias por confirmar su visita!`;
   } else {
     // Français (par défaut)
@@ -105,6 +109,7 @@ export function generatePatientWhatsAppLink({
     if (hasPrescription) {
       msg += `📄 *Ordonnance :* Photo jointe dans ma demande\n`;
     }
+    if (trackingUrl) msg += `🔎 *Suivi de ma demande :* ${trackingUrl}\n`;
     msg += `\nMerci de me confirmer votre passage !`;
   }
 

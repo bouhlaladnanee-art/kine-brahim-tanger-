@@ -33,9 +33,12 @@ import { generatePatientWhatsAppLink } from '../../utils/whatsapp';
 import { appointmentService } from '../../services/appointmentService';
 import { availabilityService } from '../../services/availabilityService';
 import { useLanguage } from '../../context/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import { saveMyBooking, getTrackingUrl, formatDateLong } from '../../utils/myBookings';
 
 export default function BookingFlow({ initialCareType = null, onCancel, onCompleted }) {
   const { t, isRTL, currentLanguage } = useLanguage();
+  const navigate = useNavigate();
   
   // Tunnel optimisé en 2 étapes rapides
   // Étape 1 : Soin & Quartier
@@ -224,6 +227,13 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
       };
 
       const saved = await appointmentService.create(appointmentRecord, formData.prescriptionFile);
+      saveMyBooking({
+        token: saved.trackingToken,
+        patientName: saved.patientName,
+        careTypeTitle: saved.careTypeTitle,
+        date: saved.date,
+        timeSlotLabel: saved.timeSlotLabel,
+      });
       setSubmittedAppointment(saved);
       setIsSubmitting(false);
 
@@ -251,8 +261,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
       careTypeTitle: submittedAppointment.careTypeTitle,
       neighborhoodName: submittedAppointment.neighborhoodName,
       addressDetails: submittedAppointment.addressDetails,
-      dateFormatted: submittedAppointment.date,
+      dateFormatted: formatDateLong(submittedAppointment.date),
       timeSlotLabel: submittedAppointment.timeSlotLabel,
+      trackingUrl: submittedAppointment.trackingToken ? getTrackingUrl(submittedAppointment.trackingToken) : '',
       hasPrescription: !!submittedAppointment.prescriptionUrl,
       coordinates: submittedAppointment.geoCoordinates,
       kinePhone: PRACTITIONER_INFO.whatsappNumber,
@@ -295,7 +306,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Créneau :</span>
-              <span className="font-bold text-text-main">{submittedAppointment.date} • {submittedAppointment.timeSlotLabel}</span>
+              <span className="font-bold text-text-main text-right">{formatDateLong(submittedAppointment.date)} • {submittedAppointment.timeSlotLabel}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-text-muted">Tarif indicatif :</span>
@@ -319,6 +330,20 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             </a>
             <p className="text-[11px] text-text-muted">
               {t('waAutoMessageNotice')}
+            </p>
+
+            {submittedAppointment.trackingToken && (
+              <button
+                type="button"
+                onClick={() => navigate(`/suivi/${submittedAppointment.trackingToken}`)}
+                className="w-full inline-flex items-center justify-center gap-2 border-2 border-primary text-primary font-bold text-sm py-3.5 px-6 rounded-2xl hover:bg-primary-50 transition-colors"
+              >
+                <Clock className="w-4 h-4" />
+                <span>Suivre ma réservation</span>
+              </button>
+            )}
+            <p className="text-[11px] text-text-muted">
+              Vous retrouverez aussi votre réservation sur la page d'accueil, rubrique « Mes réservations ».
             </p>
           </div>
         </div>

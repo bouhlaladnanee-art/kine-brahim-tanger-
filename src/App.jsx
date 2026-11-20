@@ -4,6 +4,7 @@ import MobileContainer from './components/layout/MobileContainer';
 import PatientHome from './pages/PatientHome';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import BookingTracking from './pages/BookingTracking';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 
@@ -16,6 +17,7 @@ export default function App() {
             <Routes>
               {/* Espace Patient */}
               <Route path="/" element={<PatientHome />} />
+              <Route path="/suivi/:token" element={<BookingTracking />} />
 
               {/* Espace Kiné Admin */}
               <Route path="/admin/login" element={<AdminLogin />} />

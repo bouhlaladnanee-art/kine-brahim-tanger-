@@ -56,6 +56,8 @@ export const appointmentService = {
             prescription_file_name: prescriptionFileName,
             status: 'en_attente',
             language: appointmentData.language || 'fr',
+            // Jeton secret : permet au patient (et à lui seul) de suivre sa demande
+            tracking_token: newTrackingToken(),
         };
 
         // Insertion sans relecture (pas de .select()) : le patient anonyme a le droit
@@ -72,8 +74,57 @@ export const appointmentService = {
         throw error;
       }
     } else {
-      return mockStorage.create(appointmentData);
+      return mockStorage.create({ ...appointmentData, trackingToken: newTrackingToken() });
     }
+  },
+
+  /**
+   * Suivi patient : lit UNE demande via son jeton (fonction SQL sécurisée)
+   */
+  getByToken: async (token) => {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('get_appointment_by_token', { p_token: token });
+      if (error) throw error;
+      return data || null;
+    }
+    return mockStorage.getAll().find(a => a.trackingToken === token) || null;
+  },
+
+  /**
+   * Suivi patient : accepte (true) ou refuse (false) l'horaire proposé par le kiné
+   */
+  respondToProposal: async (token, accept) => {
+    const { data, error } = await supabase.rpc('respond_to_proposal', { p_token: token, p_accept: accept });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Suivi patient : annulation de sa propre demande
+   */
+  cancelByToken: async (token) => {
+    const { data, error } = await supabase.rpc('cancel_appointment_by_token', { p_token: token });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Admin : propose un autre horaire au patient (la demande reste "en attente")
+   */
+  proposeNewTime: async (id, { date, timeSlot, timeSlotLabel, message }) => {
+    const { error } = await supabase
+      .from('appointments')
+      .update({
+        proposed_date: date,
+        proposed_time_slot: timeSlot,
+        proposed_time_label: timeSlotLabel,
+        kine_message: message || null,
+        patient_response: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+    if (error) throw error;
+    return true;
   },
 
   /**
@@ -145,6 +196,15 @@ export const appointmentService = {
 /**
  * Normalise les clés snake_case Supabase → camelCase pour l'app
  */
+function newTrackingToken() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  // Repli pour anciens navigateurs (UUID v4)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] % 16);
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 function parseLocation(raw) {
   if (!raw) return {};
   try {
@@ -177,6 +237,12 @@ function normalizeAppointment(row) {
     prescriptionFileName: row.prescription_file_name,
     status: row.status,
     language: row.language,
+    trackingToken: row.tracking_token || null,
+    proposedDate: row.proposed_date || null,
+    proposedTimeSlot: row.proposed_time_slot || null,
+    proposedTimeLabel: row.proposed_time_label || null,
+    kineMessage: row.kine_message || null,
+    patientResponse: row.patient_response || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

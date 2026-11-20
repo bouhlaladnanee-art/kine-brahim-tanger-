@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react';
 import Header from '../components/common/Header';
 import LandingHero from '../components/patient/LandingHero';
 import BookingFlow from '../components/patient/BookingFlow';
+import MyBookingsCard from '../components/patient/MyBookingsCard';
 import { PRACTITIONER_INFO } from '../data/constants';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -42,7 +43,10 @@ export default function PatientHome() {
       ) : (
         /* PAGE UNIQUE : FICHE DE PRÉSENTATION MÉDICALE OFFICIELLE */
         <div className="flex-1 flex flex-col justify-between">
-          <LandingHero onStartBooking={handleStartBooking} />
+          <div>
+            <MyBookingsCard />
+            <LandingHero onStartBooking={handleStartBooking} />
+          </div>
 
           {/* Footer discret avec lien Espace Kiné (/admin) */}
           <footer className="p-4 text-center border-t border-slate-100 bg-white/50 space-y-2 mt-6">

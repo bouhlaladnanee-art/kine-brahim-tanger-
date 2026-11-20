@@ -17,6 +17,8 @@ import Card from '../common/Card';
 import Badge from '../common/Badge';
 import Button from '../common/Button';
 import PrescriptionModal from './PrescriptionModal';
+import ProposeTimeModal from './ProposeTimeModal';
+import { formatDateLong, getTrackingUrl } from '../../utils/myBookings';
 import { generateGoogleCalendarUrl, downloadICSFile } from '../../utils/calendar';
 import { formatWhatsAppNumber } from '../../utils/whatsapp';
 
@@ -27,6 +29,7 @@ export default function RequestsTab({
 }) {
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [confirmedModalApt, setConfirmedModalApt] = useState(null);
+  const [proposeApt, setProposeApt] = useState(null);
 
   // Filtrer les rendez-vous en attente
   const pendingAppointments = appointments.filter(a => a.status === 'en_attente');
@@ -100,13 +103,24 @@ export default function RequestsTab({
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-slate-50 p-2 rounded-xl flex items-center gap-1.5 text-text-main">
                     <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span className="font-bold truncate">{apt.date}</span>
+                    <span className="font-bold truncate capitalize">{formatDateLong(apt.date)}</span>
                   </div>
                   <div className="bg-slate-50 p-2 rounded-xl flex items-center gap-1.5 text-text-main">
                     <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                     <span className="font-semibold truncate">{(apt.timeSlotLabel || 'Créneau à préciser').split('(')[0].trim()}</span>
                   </div>
                 </div>
+
+                {apt.proposedDate && (
+                  <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-2.5">
+                    <strong>Horaire proposé :</strong> <span className="capitalize">{formatDateLong(apt.proposedDate)}</span>, {apt.proposedTimeLabel}. En attente de la réponse du patient.
+                  </div>
+                )}
+                {!apt.proposedDate && apt.patientResponse === 'refuse' && (
+                  <div className="text-xs bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-2.5">
+                    Le patient a refusé l'horaire proposé. Proposez-en un autre ou appelez-le.
+                  </div>
+                )}
 
                 {/* Localisation Tanger */}
                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-xs">
@@ -157,6 +171,13 @@ export default function RequestsTab({
 
                 {/* Actions Kiné */}
                 <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setProposeApt(apt)}
+                    className="col-span-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>{apt.proposedDate ? "Modifier l'horaire proposé" : 'Proposer une autre heure'}</span>
+                  </button>
                   <button
                     onClick={() => handleValidate(apt)}
                     className="bg-primary hover:bg-primary-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-soft"
@@ -217,7 +238,7 @@ export default function RequestsTab({
               </button>
 
               <a
-                href={`https://wa.me/${formatWhatsAppNumber(confirmedModalApt.phone)}?text=${encodeURIComponent(`Bonjour ${confirmedModalApt.patientName}, votre demande de kinésithérapie à domicile à Tanger pour le ${confirmedModalApt.date} (${confirmedModalApt.timeSlotLabel}) est bien confirmée. À très bientôt ! BOUHLAL Ibrahim.`)}`}
+                href={`https://wa.me/${formatWhatsAppNumber(confirmedModalApt.phone)}?text=${encodeURIComponent(`Bonjour ${confirmedModalApt.patientName}, votre demande de kinésithérapie à domicile à Tanger pour le ${formatDateLong(confirmedModalApt.date)} (${confirmedModalApt.timeSlotLabel}) est bien confirmée. À très bientôt ! BOUHLAL Ibrahim.${confirmedModalApt.trackingToken ? `\n\nSuivi de votre rendez-vous : ${getTrackingUrl(confirmedModalApt.trackingToken)}` : ''}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-[#25D366] text-white text-xs font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-xs"
@@ -237,6 +258,10 @@ export default function RequestsTab({
             </Button>
           </div>
         </div>
+      )}
+
+      {proposeApt && (
+        <ProposeTimeModal appointment={proposeApt} onClose={() => setProposeApt(null)} />
       )}
 
       {/* Visualiseur d'ordonnance médicale */}
