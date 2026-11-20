@@ -1,22 +1,31 @@
-// Service de gestion des disponibilités - sync (localStorage) + sync Supabase en arrière-plan
+// Service de gestion des disponibilités - Temps réel Supabase + Cache Local synchrone
 import { supabase, isSupabaseConfigured } from './supabase';
 import { TIME_SLOTS } from '../data/constants';
 
 const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v2';
 const AVAILABILITY_ROW_ID = '00000000-0000-0000-0000-000000000001';
 
-// Par défaut : Priorité Week-ends complets (Samedi & Dimanche) + Soirées en semaine (17h-20h)
+// Par défaut : Week-ends complets (Samedi & Dimanche) + Soirées en semaine (17h-20h)
 const DEFAULT_WEEKLY_TEMPLATE = {
   1: ['fin_journee'],                         // Lundi : Soirée 17h-20h
   2: ['fin_journee'],                         // Mardi : Soirée 17h-20h
   3: ['fin_journee'],                         // Mercredi : Soirée 17h-20h
   4: ['fin_journee'],                         // Jeudi : Soirée 17h-20h
   5: ['fin_journee'],                         // Vendredi : Soirée 17h-20h
-  6: ['matin', 'apres_midi', 'fin_journee'], // Samedi : Toute la journée (Matin, 14h-17h, Soirée)
-  0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Toute la journée (Matin, 14h-17h, Soirée)
+  6: ['matin', 'apres_midi', 'fin_journee'], // Samedi : Toute la journée
+  0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Toute la journée
 };
 
-// ─── Helpers localStorage (sync) ─────────────────────────────────────────────
+// ─── Gestion des écouteurs réactifs (listeners) ──────────────────────────────
+const listeners = new Set();
+
+function notifyListeners() {
+  listeners.forEach(cb => {
+    try { cb(availabilityService.getConfig()); } catch (err) { console.error(err); }
+  });
+}
+
+// ─── Helpers localStorage (sync immédiat) ────────────────────────────────────
 
 function getConfigFromLocal() {
   try {
@@ -33,36 +42,69 @@ function getConfigFromLocal() {
 }
 
 function saveConfigToLocal(config) {
-  try { localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(config)); } catch {}
+  try { 
+    localStorage.setItem(AVAILABILITY_STORAGE_KEY, JSON.stringify(config)); 
+  } catch {}
 }
 
-// ─── Sync Supabase en arrière-plan au démarrage ───────────────────────────────
+// ─── Synchronisation Supabase Réseau & Temps Réel ─────────────────────────────
 
-if (isSupabaseConfigured && supabase) {
-  supabase
-    .from('availability')
-    .select('*')
-    .eq('id', AVAILABILITY_ROW_ID)
-    .single()
-    .then(({ data }) => {
-      if (data) {
-        const config = {
-          weeklyTemplate: data.weekly_template || DEFAULT_WEEKLY_TEMPLATE,
-          customDates: data.custom_dates || {},
-          blockedDates: data.blocked_dates || [],
-        };
-        saveConfigToLocal(config);
-      }
-    })
-    .catch(() => {}); // silencieux si offline
-}
-
-// ─── Save async vers Supabase ─────────────────────────────────────────────────
-
-async function persistToSupabase(config) {
+async function fetchFromSupabase() {
   if (!isSupabaseConfigured || !supabase) return;
   try {
-    await supabase
+    const { data, error } = await supabase
+      .from('availability')
+      .select('*')
+      .eq('id', AVAILABILITY_ROW_ID)
+      .single();
+
+    if (data && !error) {
+      const remoteConfig = {
+        weeklyTemplate: data.weekly_template || DEFAULT_WEEKLY_TEMPLATE,
+        customDates: data.custom_dates || {},
+        blockedDates: data.blocked_dates || [],
+      };
+      saveConfigToLocal(remoteConfig);
+      notifyListeners();
+    }
+  } catch (err) {
+    console.warn("Disponibilités : impossible de contacter Supabase, utilisation du cache local.", err);
+  }
+}
+
+// Lancement immédiat du chargement distant
+if (isSupabaseConfigured && supabase) {
+  fetchFromSupabase();
+
+  // Écoute en direct des modifications faites par le kiné (depuis le Maroc ou n'importe où)
+  supabase
+    .channel('availability-realtime-sync')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'availability' },
+      (payload) => {
+        if (payload?.new) {
+          const updated = {
+            weeklyTemplate: payload.new.weekly_template || DEFAULT_WEEKLY_TEMPLATE,
+            customDates: payload.new.custom_dates || {},
+            blockedDates: payload.new.blocked_dates || [],
+          };
+          saveConfigToLocal(updated);
+          notifyListeners();
+        } else {
+          fetchFromSupabase();
+        }
+      }
+    )
+    .subscribe();
+}
+
+// ─── Sauvegarde Cloud vers Supabase ──────────────────────────────────────────
+
+async function persistToSupabase(config) {
+  if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase non configuré' };
+  try {
+    const { error } = await supabase
       .from('availability')
       .update({
         weekly_template: config.weeklyTemplate,
@@ -71,21 +113,45 @@ async function persistToSupabase(config) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', AVAILABILITY_ROW_ID);
-  } catch {}
+
+    if (error) {
+      console.error("❌ Erreur mise à jour Supabase :", error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("❌ Exception Supabase :", err);
+    return { success: false, error: err.message };
+  }
 }
 
-// ─── Service public (tout synchrone côté composants) ─────────────────────────
+// ─── API publique du service ─────────────────────────────────────────────────
 
 export const availabilityService = {
   getConfig: () => getConfigFromLocal(),
 
-  saveConfig: (config) => {
-    saveConfigToLocal(config);
-    persistToSupabase(config); // fire-and-forget
-    return config;
+  // Abonnement réactif pour les composants React (LandingHero, BookingFlow, etc.)
+  subscribe: (callback) => {
+    listeners.add(callback);
+    // Appel immédiat avec la configuration actuelle
+    callback(availabilityService.getConfig());
+    return () => listeners.delete(callback);
   },
 
-  toggleWeeklySlot: (dayIndex, slotId) => {
+  // Forcer un rafraîchissement depuis le cloud
+  refreshFromCloud: async () => {
+    await fetchFromSupabase();
+    return availabilityService.getConfig();
+  },
+
+  saveConfig: async (config) => {
+    saveConfigToLocal(config);
+    notifyListeners();
+    const result = await persistToSupabase(config);
+    return result;
+  },
+
+  toggleWeeklySlot: async (dayIndex, slotId) => {
     const config = availabilityService.getConfig();
     const current = config.weeklyTemplate[dayIndex] || [];
     config.weeklyTemplate[dayIndex] = current.includes(slotId)
@@ -94,7 +160,7 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  toggleCustomDateSlot: (dateISO, slotId) => {
+  toggleCustomDateSlot: async (dateISO, slotId) => {
     const config = availabilityService.getConfig();
     const current = availabilityService.getAvailableSlotsForDate(dateISO).map(s => s.id);
     config.customDates[dateISO] = current.includes(slotId)
@@ -103,7 +169,7 @@ export const availabilityService = {
     return availabilityService.saveConfig(config);
   },
 
-  toggleBlockDate: (dateISO) => {
+  toggleBlockDate: async (dateISO) => {
     const config = availabilityService.getConfig();
     const blocked = config.blockedDates || [];
     config.blockedDates = blocked.includes(dateISO)
@@ -122,7 +188,6 @@ export const availabilityService = {
     return TIME_SLOTS.filter(s => (config.weeklyTemplate[day] || []).includes(s.id));
   },
 
-  // Créneaux en journée disponibles sur demande en semaine (pour les cas particuliers)
   getDaytimeOnDemandSlots: () => {
     return TIME_SLOTS.filter(s => s.isDaytime);
   },
@@ -158,7 +223,7 @@ export const availabilityService = {
     const first = upcoming[0];
     if (first.sublabel === "Aujourd'hui") return `Aujourd'hui dès ${first.slots[0].hours.split('–')[0].trim()}`;
     if (first.sublabel === 'Demain') return `Demain dès ${first.slots[0].hours.split('–')[0].trim()}`;
-    if (first.isWeekend) return `${first.label} (Week-end ouvert)`;
+    if (first.isWeekend) return `${first.label} (Week-end)`;
     return `${first.label} dès ${first.slots[0].hours.split('–')[0].trim()}`;
   },
 };

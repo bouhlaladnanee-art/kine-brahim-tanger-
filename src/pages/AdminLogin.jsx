@@ -7,8 +7,8 @@ import { PRACTITIONER_INFO } from '../data/constants';
 
 export default function AdminLogin() {
   const [authMode, setAuthMode] = useState('email'); // 'email' | 'phone'
-  const [email, setEmail] = useState('kine@tanger.ma');
-  const [password, setPassword] = useState('kine123');
+  const [email, setEmail] = useState('ibrahim@kine-tanger.ma');
+  const [password, setPassword] = useState('Kine@Tanger2026');
   
   // Phone auth state
   const [phoneNumber, setPhoneNumber] = useState('+212661000000');
@@ -26,8 +26,8 @@ export default function AdminLogin() {
     try {
       await login(email, password);
       navigate('/admin');
-    } catch {
-      setError('Identifiants incorrects. Veuillez réessayer.');
+    } catch (err) {
+      setError(err?.message || 'Identifiants incorrects. Veuillez réessayer.');
     }
   };
 

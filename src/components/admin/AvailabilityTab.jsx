@@ -27,35 +27,61 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function AvailabilityTab() {
-  const [config, setConfig] = useState(availabilityService.getConfig());
+  const [config, setConfig] = useState(() => availabilityService.getConfig());
   const [activeSubTab, setActiveSubTab] = useState('weekly'); // 'weekly' | 'calendar'
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const refreshConfig = () => {
-    setConfig(availabilityService.getConfig());
+  useEffect(() => {
+    const unsubscribe = availabilityService.subscribe((newConfig) => {
+      setConfig({ ...newConfig });
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const refreshConfig = async () => {
+    setIsSyncing(true);
+    await availabilityService.refreshFromCloud();
+    setIsSyncing(false);
+    showFeedback("✅ Disponibilités synchronisées depuis le Cloud !");
   };
 
-  const handleToggleWeekly = (dayIndex, slotId) => {
-    const updated = availabilityService.toggleWeeklySlot(dayIndex, slotId);
-    setConfig({ ...updated });
-    showFeedback("Planning hebdomadaire mis à jour !");
+  const handleToggleWeekly = async (dayIndex, slotId) => {
+    setIsSyncing(true);
+    const res = await availabilityService.toggleWeeklySlot(dayIndex, slotId);
+    setIsSyncing(false);
+    if (res?.success) {
+      showFeedback("✅ Synchronisé en direct sur le Cloud !");
+    } else {
+      showFeedback("⚠️ Enregistré en local (Erreur Cloud : " + (res?.error || 'Réseau') + ")");
+    }
   };
 
-  const handleToggleCustomSlot = (dateISO, slotId) => {
-    const updated = availabilityService.toggleCustomDateSlot(dateISO, slotId);
-    setConfig({ ...updated });
-    showFeedback("Créneau mis à jour pour cette date !");
+  const handleToggleCustomSlot = async (dateISO, slotId) => {
+    setIsSyncing(true);
+    const res = await availabilityService.toggleCustomDateSlot(dateISO, slotId);
+    setIsSyncing(false);
+    if (res?.success) {
+      showFeedback("✅ Créneau synchronisé sur le Cloud !");
+    } else {
+      showFeedback("⚠️ Enregistré en local (Erreur Cloud : " + (res?.error || 'Réseau') + ")");
+    }
   };
 
-  const handleToggleBlockDate = (dateISO) => {
-    const updated = availabilityService.toggleBlockDate(dateISO);
-    setConfig({ ...updated });
-    showFeedback("Disponibilité de la journée modifiée !");
+  const handleToggleBlockDate = async (dateISO) => {
+    setIsSyncing(true);
+    const res = await availabilityService.toggleBlockDate(dateISO);
+    setIsSyncing(false);
+    if (res?.success) {
+      showFeedback("✅ Date synchronisée sur le Cloud !");
+    } else {
+      showFeedback("⚠️ Enregistré en local (Erreur Cloud : " + (res?.error || 'Réseau') + ")");
+    }
   };
 
   const showFeedback = (msg) => {
     setFeedbackMessage(msg);
-    setTimeout(() => setFeedbackMessage(''), 3000);
+    setTimeout(() => setFeedbackMessage(''), 3500);
   };
 
   // Liste des 10 prochains jours pour l'ajustement ponctuel

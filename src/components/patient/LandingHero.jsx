@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   MapPin, 
@@ -23,7 +23,14 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export default function LandingHero({ onStartBooking }) {
   const { t, isRTL, currentLanguage } = useLanguage();
-  const nextAvailability = availabilityService.getNextAvailabilityText();
+  const [nextAvailability, setNextAvailability] = useState(() => availabilityService.getNextAvailabilityText());
+
+  useEffect(() => {
+    const unsubscribe = availabilityService.subscribe(() => {
+      setNextAvailability(availabilityService.getNextAvailabilityText());
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Lien de partage viral WhatsApp
   const shareUrl = window.location.origin;

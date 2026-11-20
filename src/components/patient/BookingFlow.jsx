@@ -41,8 +41,17 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAppointment, setSubmittedAppointment] = useState(null);
 
-  // Récupération dynamique des dates réellement disponibles (configurées par le kiné)
-  const availableDates = availabilityService.getAvailableUpcomingDates(14);
+  // Récupération dynamique et réactive des dates disponibles (synchronisées en direct depuis Supabase)
+  const [availableDates, setAvailableDates] = useState(() => availabilityService.getAvailableUpcomingDates(14));
+
+  React.useEffect(() => {
+    const unsubscribe = availabilityService.subscribe(() => {
+      const dates = availabilityService.getAvailableUpcomingDates(14);
+      setAvailableDates(dates);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const initialDate = availableDates.length > 0 ? availableDates[0].iso : new Date().toISOString().split('T')[0];
   const initialSlots = availabilityService.getAvailableSlotsForDate(initialDate);
   const initialSlotId = initialSlots.length > 0 ? initialSlots[0].id : '';
