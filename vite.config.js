@@ -12,6 +12,10 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        // La page HTML vient toujours du réseau : chaque visite charge la dernière
+        // version du site (seuls les fichiers versionnés JS/CSS/images sont mis en cache).
+        globPatterns: ['**/*.{js,css,ico,png,svg,webmanifest}'],
+        navigateFallback: null,
       },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
