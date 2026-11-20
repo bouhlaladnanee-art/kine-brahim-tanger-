@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('tournee'); // 'tournee' | 'demandes' | 'factures' | 'historique'
   const [appointments, setAppointments] = useState([]);
   const [invoiceModalData, setInvoiceModalData] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   // Redirection si non connecté
   useEffect(() => {
@@ -35,9 +36,10 @@ export default function AdminDashboard() {
 
   // Abonnement en temps réel aux rendez-vous (Firestore onSnapshot / Local)
   useEffect(() => {
-    const unsubscribe = appointmentService.subscribe((list) => {
-      setAppointments(list);
-    });
+    const unsubscribe = appointmentService.subscribe(
+      (list) => setAppointments(list),
+      (error) => setLoadError(error ? (error.message || 'Erreur de connexion') : '')
+    );
     return () => unsubscribe();
   }, []);
 
@@ -110,6 +112,18 @@ export default function AdminDashboard() {
 
       {/* Contenu principal de l'onglet actif */}
       <main className="flex-1 p-4 sm:p-5">
+        {loadError && (
+          <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-sm space-y-2">
+            <p className="font-bold">Impossible de charger les demandes.</p>
+            <p className="text-xs">Votre session a peut-être expiré ({loadError}).</p>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold underline"
+            >
+              Se reconnecter
+            </button>
+          </div>
+        )}
         {activeTab === 'tournee' && (
           <TourTodayTab
             appointments={appointments}

@@ -25,6 +25,11 @@ export function AuthProvider({ children }) {
         const userObj = buildUserObj(session.user);
         setCurrentUser(userObj);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userObj));
+      } else {
+        // Session Supabase absente/expirée : l'utilisateur mémorisé localement n'a plus
+        // aucun droit de lecture. On le déconnecte pour forcer une vraie connexion.
+        setCurrentUser(null);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     });
 
@@ -34,11 +39,9 @@ export function AuthProvider({ children }) {
         const userObj = buildUserObj(session.user);
         setCurrentUser(userObj);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userObj));
-      } else {
-        if (currentUser?.isSupabase) {
-          setCurrentUser(null);
-          localStorage.removeItem(AUTH_STORAGE_KEY);
-        }
+      } else if (_event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
       }
     });
 

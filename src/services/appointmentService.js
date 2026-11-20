@@ -79,37 +79,37 @@ export const appointmentService = {
   /**
    * Écoute en temps réel les rendez-vous (Supabase Realtime)
    */
-  subscribe: (callback) => {
+  subscribe: (callback, onError = () => {}) => {
     if (isSupabaseConfigured && supabase) {
-      // Chargement initial
-      supabase
-        .from('appointments')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .then(({ data, error }) => {
-          if (error) {
-            console.warn('Erreur Supabase, utilisation des données locales :', error);
-            callback(mockStorage.getAll());
-          } else {
-            callback((data || []).map(normalizeAppointment));
-          }
-        });
+      // Jamais de données de démo ici : en cas d'erreur, on le signale au praticien
+      const load = () =>
+        supabase
+          .from('appointments')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Lecture des rendez-vous impossible :', error);
+              onError(error);
+            } else {
+              onError(null);
+              callback((data || []).map(normalizeAppointment));
+            }
+          });
 
-      // Écoute temps réel
+      load();
+
+      // Écoute temps réel + rafraîchissement de secours toutes les 30 s
       const channel = supabase
         .channel('appointments-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-          supabase
-            .from('appointments')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .then(({ data }) => {
-              callback((data || []).map(normalizeAppointment));
-            });
-        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, load)
         .subscribe();
+      const interval = setInterval(load, 30000);
 
-      return () => supabase.removeChannel(channel);
+      return () => {
+        clearInterval(interval);
+        supabase.removeChannel(channel);
+      };
     } else {
       callback(mockStorage.getAll());
       const interval = setInterval(() => callback(mockStorage.getAll()), 3000);
