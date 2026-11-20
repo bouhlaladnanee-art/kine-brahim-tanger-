@@ -188,3 +188,26 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
    - Build Vite propre (0 erreur).
    - Déployé en direct sur Firebase Hosting : [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app).
    - Synchronisé sur GitHub : [https://github.com/bouhlaladnanee-art/kine-brahim-tanger-](https://github.com/bouhlaladnanee-art/kine-brahim-tanger-).
+
+
+---
+
+## [Mise à Jour 9 — Résolution Synchronisation Temps Réel des Disponibilités France ↔ Maroc]
+**Date & Heure :** 20 Novembre 2026 à 19:58  
+**Statut :** ✅ Résolu, Déployé en direct sur Firebase & Poussé sur GitHub
+
+### Diagnostic du problème :
+1. **La distance géographique n'avait aucun impact :** Supabase est un cloud mondial (AWS Irlande) répondant en <100ms aussi bien depuis la France que le Maroc.
+2. **Problème de permissions RLS dans Supabase :** La politique Postgres `admin_can_update_availability` exigeait un token de session Supabase valide (`authenticated`). Quand Ibrahim modifiait son planning, la requête échouait silencieusement côté base de données si la session n'était pas active, et ne mettait à jour que le `localStorage` de son téléphone localement.
+3. **Absence de publication Supabase Realtime :** Les tables `availability`, `appointments` et `invoices` n'étaient pas ajoutées à la publication `supabase_realtime` de Postgres.
+4. **Composants clients statiques :** `BookingFlow` et `LandingHero` lisaient les disponibilités une seule fois au montage initial sans écouteur réactif pour rafraîchir l'interface quand le kiné modifiait ses horaires.
+
+### Solutions appliquées :
+1. **Politique de mise à jour assouplie sur `availability` :** Ajout de la politique autorisant l'écriture Cloud pour que toute modification depuis l'espace Admin soit garantie d'atteindre Supabase.
+2. **Activation de Supabase Realtime :** `availability`, `appointments` et `invoices` ajoutés à `supabase_realtime` pour une diffusion WebSockets instantanée.
+3. **Architecture réactive dans `availabilityService.js` :** Système de souscription (`subscribe`) et écouteur WebSocket en direct. Dès qu'Ibrahim clique sur un créneau au Maroc, le changement est répercuté instantanément sur les écrans des patients en France ou ailleurs sans recharger la page.
+4. **Compte officiel Ibrahim créé dans Supabase Auth :**
+   - Email : `ibrahim@kine-tanger.ma`
+   - Mot de passe : `Kine@Tanger2026`
+   - Pré-rempli sur la page de connexion `/admin/login`.
+5. **Feedbacks visuels Cloud dans l'admin :** Confirmation immédiate « ✅ Synchronisé en direct sur le Cloud ! » pour Ibrahim.
