@@ -11,7 +11,7 @@ export const PRACTITIONER_INFO = {
   basePriceMAD: 200,
   experienceYears: "8+",
   diploma: "Diplômé de l'Institut Supérieur des Professions Infirmières et Techniques de Santé (ISPITS)",
-  bio: "Prise en charge personnalisée à votre domicile à Tanger avec matériel de rééducation adapté. Ponctualité, hygiène rigoureuse et écoute attentive pour soulager vos douleurs et restaurer votre mobilité.",
+  bio: "Prise en charge personnalisée à votre domicile à Tanger. Ponctualité, hygiène rigoureuse et écoute attentive pour soulager vos douleurs et restaurer votre mobilité.",
 };
 
 // Quartiers de Tanger couverts
@@ -35,43 +35,31 @@ export const CARE_TYPES = [
     id: 'post_op',
     title: 'Rééducation post-opératoire',
     description: 'Prothèse hanche/genou, chirurgie ligamentaire, fractures.',
-    icon: 'Activity',
-    badge: 'Très demandé'
+    icon: 'Activity'
   },
   {
     id: 'dos_sciatique',
     title: 'Mal de dos & Sciatique',
     description: 'Lumbago, hernie discale, cervicalgies, blocages aigus.',
-    icon: 'ShieldAlert',
-    badge: 'Soulagement rapide'
-  },
-  {
-    id: 'respiratoire',
-    title: 'Kiné respiratoire',
-    description: 'Désencombrement bronchique adultes, BPCO, suite d’infections.',
-    icon: 'Wind',
-    badge: 'À domicile'
+    icon: 'ShieldAlert'
   },
   {
     id: 'personnes_agees',
     title: 'Maintien de l’autonomie & Seniors',
     description: 'Prévention des chutes, renforcement, reprise de marche.',
-    icon: 'HeartHandshake',
-    badge: 'Doux & Rassurant'
+    icon: 'HeartHandshake'
   },
   {
     id: 'sport',
     title: 'Kiné du sport & Traumatologie',
     description: 'Entorses, déchirures musculaires, tendinites, reprise d’appui.',
-    icon: 'Zap',
-    badge: 'Dynamique'
+    icon: 'Zap'
   },
   {
     id: 'autre_soin',
     title: 'Autre motif de rééducation',
     description: 'Évaluation personnalisée selon ordonnance médicale.',
-    icon: 'Stethoscope',
-    badge: 'Sur mesure'
+    icon: 'Stethoscope'
   }
 ];
 
@@ -79,21 +67,24 @@ export const CARE_TYPES = [
 export const TIME_SLOTS = [
   {
     id: 'matin',
-    label: 'Matin',
+    label: 'Matinée',
     hours: '09h00 – 12h00',
-    description: 'Idéal pour démarrer la journée en douceur'
+    description: 'Week-ends (ou en semaine sur confirmation)',
+    isDaytime: true,
   },
   {
     id: 'apres_midi',
     label: 'Après-midi',
     hours: '14h00 – 17h00',
-    description: 'Créneaux réguliers de début d’après-midi'
+    description: 'Week-ends (ou en semaine dès 14h sur confirmation)',
+    isDaytime: true,
   },
   {
     id: 'fin_journee',
-    label: 'Fin de journée',
+    label: 'Soirée / Fin de journée',
     hours: '17h00 – 20h00',
-    description: 'Après les heures de travail'
+    description: 'Créneau régulier garanti en semaine & week-ends',
+    isEvening: true,
   }
 ];
 

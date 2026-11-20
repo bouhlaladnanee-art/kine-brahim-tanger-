@@ -57,6 +57,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     geoCoordinates: null,
     date: initialDate,
     timeSlotId: initialSlotId,
+    timeSlotCustomLabel: '',
     patientName: '',
     phone: '',
     notes: '',
@@ -77,7 +78,8 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     setFormData(prev => ({
       ...prev,
       date: dateIso,
-      timeSlotId: hasCurrentSlot ? prev.timeSlotId : (slots[0]?.id || '')
+      timeSlotId: hasCurrentSlot ? prev.timeSlotId : (slots[0]?.id || ''),
+      timeSlotCustomLabel: ''
     }));
   };
 
@@ -198,7 +200,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         geoCoordinates: formData.geoCoordinates,
         date: formData.date,
         timeSlot: formData.timeSlotId,
-        timeSlotLabel: selectedSlot ? `${selectedSlot.label} (${selectedSlot.hours})` : 'Plage convenue',
+        timeSlotLabel: formData.timeSlotCustomLabel || (selectedSlot ? `${selectedSlot.label} (${selectedSlot.hours})` : 'Plage convenue'),
         notes: formData.notes.trim(),
       };
 
@@ -400,14 +402,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                     `}
                   >
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-text-main">{care.title}</span>
-                        {care.badge && (
-                          <span className="text-[10px] font-semibold text-primary bg-primary-50 px-2 py-0.5 rounded-md">
-                            {care.badge}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-bold text-sm text-text-main">{care.title}</span>
                       <p className="text-xs text-text-muted">{care.description}</p>
                     </div>
 
@@ -431,7 +426,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 </span>
               </div>
               <p className="text-[11px] text-text-muted">
-                Prenez en photo votre prescription si vous en avez une, cela permet au kiné de préparer le matériel adéquat.
+                Prenez en photo votre prescription si vous en avez une, cela permet au kiné de préparer au mieux votre séance.
               </p>
 
               {formData.prescriptionPreview ? (
@@ -561,7 +556,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
               />
               <p className="text-[10px] text-text-muted">
-                Ces indications facilitent l'accès au domicile du praticien avec tout son matériel.
+                Ces indications facilitent l'arrivée ponctuelle du praticien à votre domicile.
               </p>
             </div>
           </div>
@@ -650,10 +645,21 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
 
                 {/* Plages horaires disponibles pour la date sélectionnée */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <span>Créneaux ouverts pour cette date</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-primary" />
+                      <span>Créneaux disponibles</span>
+                    </label>
+                    {new Date(formData.date + 'T00:00:00').getDay() === 0 || new Date(formData.date + 'T00:00:00').getDay() === 6 ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        Week-end ouvert
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-primary bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full">
+                        Soirée garantie dès 17h
+                      </span>
+                    )}
+                  </div>
 
                   {activeDateSlots.length === 0 ? (
                     <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center text-xs text-text-muted">
@@ -662,11 +668,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                   ) : (
                     <div className="grid grid-cols-1 gap-2.5">
                       {activeDateSlots.map(slot => {
-                        const isSelected = formData.timeSlotId === slot.id;
+                        const isSelected = formData.timeSlotId === slot.id && !formData.timeSlotCustomLabel;
                         return (
                           <div
                             key={slot.id}
-                            onClick={() => setFormData({ ...formData, timeSlotId: slot.id })}
+                            onClick={() => setFormData({ ...formData, timeSlotId: slot.id, timeSlotCustomLabel: '' })}
                             className={`
                               p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
                               ${isSelected
@@ -694,8 +700,67 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                     </div>
                   )}
 
+                  {/* Option créneau en journée en semaine (au cas où) */}
+                  {(new Date(formData.date + 'T00:00:00').getDay() >= 1 && new Date(formData.date + 'T00:00:00').getDay() <= 5) && (
+                    <div className="mt-3 bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-2.5">
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-text-main">
+                            Besoin d'un créneau en journée en semaine (Matin ou 14h–17h) ?
+                          </p>
+                          <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                            Ibrahim exerce principalement en soirée et les week-ends. En cas de besoin particulier en journée, vous pouvez demander ce créneau sous réserve de confirmation préalable.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setFormData({
+                            ...formData,
+                            timeSlotId: 'matin_sur_demande',
+                            timeSlotCustomLabel: 'Matinée (09h00 – 12h00) • Sur confirmation préalable'
+                          })}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            formData.timeSlotId === 'matin_sur_demande'
+                              ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-text-main">Matinée</span>
+                            <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
+                          </div>
+                          <span className="text-[10px] text-text-muted block mt-0.5">09h00 – 12h00</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setFormData({
+                            ...formData,
+                            timeSlotId: 'apres_midi_sur_demande',
+                            timeSlotCustomLabel: 'Après-midi (14h00 – 17h00) • Sur confirmation préalable'
+                          })}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            formData.timeSlotId === 'apres_midi_sur_demande'
+                              ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-text-main">Après-midi</span>
+                            <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
+                          </div>
+                          <span className="text-[10px] text-text-muted block mt-0.5">14h00 – 17h00</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-[11px] text-text-muted italic">
-                    * Le kiné vous confirmera l'heure exacte de son passage dans la plage horaire sélectionnée.
+                    * Le praticien vous confirmera l'horaire précis de son passage dans la plage convenue.
                   </p>
                 </div>
               </>
@@ -772,7 +837,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               <div className="space-y-1 text-text-muted">
                 <p>• <strong className="text-text-main">{t('waCare')} :</strong> {currentCare ? currentCare.title : ''}</p>
                 <p>• <strong className="text-text-main">{t('waNeighborhood')} :</strong> {currentNeighborhood ? currentNeighborhood.name : ''}</p>
-                <p>• <strong className="text-text-main">{t('waSlot')} :</strong> {formData.date} ({currentSlot ? currentSlot.label : ''})</p>
+                <p>• <strong className="text-text-main">{t('waSlot')} :</strong> {formData.date} ({formData.timeSlotCustomLabel || (currentSlot ? currentSlot.label : '')})</p>
                 <p>• <strong className="text-text-main">{t('transparentPricing')} :</strong> {t('startingAt')} {PRACTITIONER_INFO.basePriceMAD} DH ({t('onSitePayment')}) <span className="text-[10px] text-slate-500 italic">({t('priceNoticeDiagnostic')})</span></p>
                 {formData.geoCoordinates && (
                   <p className="text-emerald-700 font-semibold">• Coordonnées GPS Tanger incluses</p>

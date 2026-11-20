@@ -37,20 +37,16 @@ export default function LandingHero({ onStartBooking }) {
   const directWhatsAppLink = `https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent(directWaText)}`;
 
   return (
-    <div className="relative overflow-hidden bg-white rounded-b-3xl border-b border-slate-100 shadow-sm">
-      {/* Fond décoratif doux */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-primary-50 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3 opacity-70" />
-      <div className="absolute bottom-0 left-0 w-56 h-56 bg-accent-50 rounded-full blur-2xl -z-10 -translate-x-1/4 translate-y-1/4 opacity-60" />
-
+    <div className="relative overflow-hidden bg-white rounded-b-3xl border-b border-slate-200/80 shadow-xs">
       <div className="p-4 sm:p-6 space-y-5">
         {/* En-tête officiel Praticien de Santé */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-primary bg-primary-50 px-3 py-1 rounded-full border border-primary-200/60">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
             <span>{t('officialBadge')}</span>
           </span>
-          <span className="text-[11px] font-bold text-text-muted flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-accent" /> {t('tangerIntramuros')}
+          <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-primary" /> {t('tangerIntramuros')}
           </span>
         </div>
 
@@ -58,12 +54,12 @@ export default function LandingHero({ onStartBooking }) {
         <div className="flex items-center gap-4 pt-1">
           <div className="relative">
             {/* Avatar médical soigné */}
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 p-0.5 shadow-soft flex items-center justify-center text-white overflow-hidden relative">
-              <div className="w-full h-full bg-primary-700 flex flex-col items-center justify-center rounded-[14px]">
-                <span className="text-2xl font-black tracking-tight">BM</span>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-900 p-0.5 shadow-sm flex items-center justify-center text-white overflow-hidden relative">
+              <div className="w-full h-full bg-primary-800 flex flex-col items-center justify-center rounded-[14px]">
+                <span className="text-2xl font-black tracking-tight">BI</span>
                 <span className="text-[9px] uppercase tracking-wider text-primary-200 font-bold">Kiné Tanger</span>
               </div>
-              <div className="absolute bottom-1 right-1 bg-white text-primary rounded-full p-1 shadow-sm">
+              <div className="absolute bottom-1 right-1 bg-white text-primary rounded-full p-1 shadow-xs">
                 <Check className="w-3.5 h-3.5 text-primary stroke-[3]" />
               </div>
             </div>
@@ -82,8 +78,8 @@ export default function LandingHero({ onStartBooking }) {
           </div>
         </div>
 
-        {/* Bio courte et chaleureuse */}
-        <div className="bg-slate-50/90 p-3.5 rounded-2xl border border-slate-200/80 text-xs text-text-main leading-relaxed">
+        {/* Bio sobre et professionnelle */}
+        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 text-xs text-text-main leading-relaxed">
           <p>{t('practitionerBio')}</p>
         </div>
 
@@ -91,13 +87,13 @@ export default function LandingHero({ onStartBooking }) {
         {/* LE NUMÉRO DE TÉLÉPHONE EN GRAND & CONTACT DIRECT IMMÉDIAT     */}
         {/* Pensé spécialement pour les personnes âgées / urgence          */}
         {/* ------------------------------------------------------------- */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-4 sm:p-5 rounded-3xl shadow-xl space-y-3.5">
+        <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-3xl shadow-lg space-y-3.5 border border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-emerald-400" />
               {t('callNumberDirect')}
             </span>
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full font-bold">
               {nextAvailability}
             </span>
           </div>

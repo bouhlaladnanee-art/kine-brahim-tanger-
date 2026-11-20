@@ -2,17 +2,18 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { TIME_SLOTS } from '../data/constants';
 
-const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v1';
+const AVAILABILITY_STORAGE_KEY = 'kine_tanger_availability_v2';
 const AVAILABILITY_ROW_ID = '00000000-0000-0000-0000-000000000001';
 
+// Par défaut : Priorité Week-ends complets (Samedi & Dimanche) + Soirées en semaine (17h-20h)
 const DEFAULT_WEEKLY_TEMPLATE = {
-  1: ['fin_journee'],
-  2: ['fin_journee'],
-  3: ['apres_midi', 'fin_journee'],
-  4: ['fin_journee'],
-  5: ['fin_journee'],
-  6: ['matin', 'apres_midi'],
-  0: [],
+  1: ['fin_journee'],                         // Lundi : Soirée 17h-20h
+  2: ['fin_journee'],                         // Mardi : Soirée 17h-20h
+  3: ['fin_journee'],                         // Mercredi : Soirée 17h-20h
+  4: ['fin_journee'],                         // Jeudi : Soirée 17h-20h
+  5: ['fin_journee'],                         // Vendredi : Soirée 17h-20h
+  6: ['matin', 'apres_midi', 'fin_journee'], // Samedi : Toute la journée (Matin, 14h-17h, Soirée)
+  0: ['matin', 'apres_midi', 'fin_journee'], // Dimanche : Toute la journée (Matin, 14h-17h, Soirée)
 };
 
 // ─── Helpers localStorage (sync) ─────────────────────────────────────────────
@@ -121,6 +122,11 @@ export const availabilityService = {
     return TIME_SLOTS.filter(s => (config.weeklyTemplate[day] || []).includes(s.id));
   },
 
+  // Créneaux en journée disponibles sur demande en semaine (pour les cas particuliers)
+  getDaytimeOnDemandSlots: () => {
+    return TIME_SLOTS.filter(s => s.isDaytime);
+  },
+
   getAvailableUpcomingDates: (daysAhead = 14) => {
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
@@ -131,11 +137,13 @@ export const availabilityService = {
       const iso = d.toISOString().split('T')[0];
       const slots = availabilityService.getAvailableSlotsForDate(iso);
       if (slots.length > 0) {
+        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
         result.push({
           iso,
           label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`,
-          sublabel: i === 0 ? "Aujourd'hui" : i === 1 ? 'Demain' : '',
+          sublabel: i === 0 ? "Aujourd'hui" : i === 1 ? 'Demain' : (isWeekend ? 'Week-end' : ''),
           dateObj: d,
+          isWeekend,
           availableSlotsCount: slots.length,
           slots,
         });
@@ -146,10 +154,11 @@ export const availabilityService = {
 
   getNextAvailabilityText: () => {
     const upcoming = availabilityService.getAvailableUpcomingDates(7);
-    if (upcoming.length === 0) return 'Sur rendez-vous préalable';
+    if (upcoming.length === 0) return 'Week-ends & Soirées sur RDV';
     const first = upcoming[0];
     if (first.sublabel === "Aujourd'hui") return `Aujourd'hui dès ${first.slots[0].hours.split('–')[0].trim()}`;
     if (first.sublabel === 'Demain') return `Demain dès ${first.slots[0].hours.split('–')[0].trim()}`;
-    return `${first.label} (${first.slots.map(s => s.hours).join(' ou ')})`;
+    if (first.isWeekend) return `${first.label} (Week-end ouvert)`;
+    return `${first.label} dès ${first.slots[0].hours.split('–')[0].trim()}`;
   },
 };
