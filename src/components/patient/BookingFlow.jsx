@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -16,13 +16,12 @@ import {
   FileText, 
   MessageCircle, 
   AlertCircle,
-  Sparkles,
-  ShieldCheck,
-  ChevronRight
+  ChevronDown,
+  ChevronUp,
+  Banknote,
+  ShieldCheck
 } from 'lucide-react';
 import Button from '../common/Button';
-import Card from '../common/Card';
-import Badge from '../common/Badge';
 import { 
   CARE_TYPES, 
   TANGER_NEIGHBORHOODS, 
@@ -37,14 +36,21 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export default function BookingFlow({ initialCareType = null, onCancel, onCompleted }) {
   const { t, isRTL, currentLanguage } = useLanguage();
+  
+  // Tunnel optimisé en 2 étapes rapides
+  // Étape 1 : Soin & Quartier
+  // Étape 2 : Créneau & Coordonnées
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedAppointment, setSubmittedAppointment] = useState(null);
 
-  // Récupération dynamique et réactive des dates disponibles (synchronisées en direct depuis Supabase)
+  // Section dépliable facultative pour l'adresse détaillée & ordonnance à l'étape 1
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false);
+
+  // Disponibilités en direct synchronisées avec Supabase Realtime
   const [availableDates, setAvailableDates] = useState(() => availabilityService.getAvailableUpcomingDates(14));
 
-  React.useEffect(() => {
+  useEffect(() => {
     const unsubscribe = availabilityService.subscribe(() => {
       const dates = availabilityService.getAvailableUpcomingDates(14);
       setAvailableDates(dates);
@@ -80,7 +86,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   // Créneaux ouverts pour la date sélectionnée
   const activeDateSlots = availabilityService.getAvailableSlotsForDate(formData.date);
 
-  // Synchronise le créneau horaire si la date change et que l'ancien créneau n'est pas ouvert
+  // Mise à jour de la date avec ajustement du créneau
   const handleSelectDate = (dateIso) => {
     const slots = availabilityService.getAvailableSlotsForDate(dateIso);
     const hasCurrentSlot = slots.some(s => s.id === formData.timeSlotId);
@@ -92,7 +98,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }));
   };
 
-  // Gestion de l'upload de photo d'ordonnance
+  // Upload d'ordonnance médicale
   const handlePrescriptionUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -106,6 +112,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         prescriptionFile: file,
         prescriptionPreview: previewUrl
       }));
+      setShowOptionalDetails(true);
       setValidationError('');
     }
   };
@@ -132,6 +139,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         geoCoordinates: coords
       }));
       setGpsSuccess(true);
+      setShowOptionalDetails(true);
     } catch (err) {
       setGpsError(err.message);
       setGpsSuccess(false);
@@ -140,7 +148,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }
   };
 
-  // Navigation étapes
+  // Navigation entre les 2 étapes
   const handleNext = () => {
     setValidationError('');
     if (step === 1) {
@@ -148,26 +156,20 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         setValidationError("Veuillez sélectionner un motif de soin.");
         return;
       }
-      setStep(2);
-    } else if (step === 2) {
       if (!formData.neighborhoodId) {
-        setValidationError("Veuillez choisir votre quartier à Tanger.");
+        setValidationError("Veuillez sélectionner votre quartier à Tanger.");
         return;
       }
-      setStep(3);
-    } else if (step === 3) {
-      if (!formData.date || !formData.timeSlotId) {
-        setValidationError("Veuillez choisir une date et un créneau.");
-        return;
-      }
-      setStep(4);
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrev = () => {
     setValidationError('');
-    if (step > 1) {
-      setStep(step - 1);
+    if (step === 2) {
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       onCancel();
     }
@@ -175,11 +177,16 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
 
   // Soumission finale de la réservation
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setValidationError('');
 
+    if (!formData.date || !formData.timeSlotId) {
+      setValidationError("Veuillez choisir une date et un créneau.");
+      return;
+    }
+
     if (!formData.patientName.trim()) {
-      setValidationError("Veuillez renseigner votre nom complet.");
+      setValidationError("Veuillez indiquer votre nom complet.");
       return;
     }
 
@@ -213,7 +220,6 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         notes: formData.notes.trim(),
       };
 
-      // Sauvegarde dans Firestore (ou fallback local) avec upload Storage de l'ordonnance
       const saved = await appointmentService.create(appointmentRecord, formData.prescriptionFile);
       setSubmittedAppointment(saved);
       setIsSubmitting(false);
@@ -227,13 +233,12 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     }
   };
 
-  // Helper pour trouver les objets sélectionnés
   const currentCare = CARE_TYPES.find(c => c.id === formData.careTypeId);
   const currentNeighborhood = TANGER_NEIGHBORHOODS.find(n => n.id === formData.neighborhoodId);
   const currentSlot = TIME_SLOTS.find(s => s.id === formData.timeSlotId);
 
   // ----------------------------------------------------
-  // ÉCRAN DE CONFIRMATION FINAL
+  // ÉCRAN DE CONFIRMATION FINAL (AVEC BOUTON WHATSAPP)
   // ----------------------------------------------------
   if (submittedAppointment) {
     const waLink = generatePatientWhatsAppLink({
@@ -251,11 +256,11 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
     });
 
     return (
-      <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between space-y-6">
-        <div className="space-y-6 text-center pt-4">
-          {/* Cercle d'approbation animé */}
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-soft ring-8 ring-emerald-50 animate-bounce">
-            <Check className="w-10 h-10 stroke-[3]" />
+      <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between space-y-6 bg-white min-h-[80vh]">
+        <div className="space-y-6 text-center pt-4 max-w-md mx-auto w-full">
+          {/* Cercle d'approbation */}
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm ring-8 ring-emerald-50">
+            <Check className="w-8 h-8 stroke-[3]" />
           </div>
 
           <div className="space-y-1">
@@ -265,32 +270,32 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             <h2 className="text-2xl font-black text-text-main">
               {t('confirmedTitle')}
             </h2>
-            <p className="text-xs text-text-muted max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-text-muted leading-relaxed">
               {t('confirmedDesc')}
             </p>
           </div>
 
-          {/* Récapitulatif condensé */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 text-left space-y-2.5 shadow-card text-xs">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          {/* Récapitulatif clair & synthétique */}
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left space-y-2.5 text-xs">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Patient :</span>
               <span className="font-bold text-text-main">{submittedAppointment.patientName}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Soin :</span>
               <span className="font-bold text-primary">{submittedAppointment.careTypeTitle}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Quartier :</span>
               <span className="font-bold text-text-main">{submittedAppointment.neighborhoodName}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
               <span className="text-text-muted">Créneau :</span>
               <span className="font-bold text-text-main">{submittedAppointment.date} • {submittedAppointment.timeSlotLabel}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-text-muted">Tarif indicatif :</span>
-              <span className="font-bold text-accent">À partir de {PRACTITIONER_INFO.basePriceMAD} DH (sur place)</span>
+              <span className="font-bold text-slate-800">À partir de {PRACTITIONER_INFO.basePriceMAD} DH (sur place)</span>
             </div>
             <p className="text-[10px] text-slate-500 italic text-right pt-0.5">
               * {t('priceNoticeDiagnostic')}
@@ -303,9 +308,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#20BD5A] text-white py-4 px-6 rounded-2xl font-extrabold text-base shadow-lg shadow-emerald-500/25 active:scale-[0.98] transition-all"
+              className="w-full inline-flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#20BD5A] text-white font-extrabold text-sm py-4 px-6 rounded-2xl shadow-md transition-all active:scale-[0.98]"
             >
-              <MessageCircle className="w-6 h-6 fill-current" />
+              <MessageCircle className="w-5 h-5 fill-current" />
               <span>{t('btnConfirmWA')}</span>
             </a>
             <p className="text-[11px] text-text-muted">
@@ -315,11 +320,12 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         </div>
 
         {/* Bouton retour accueil */}
-        <div className="pt-4 border-t border-slate-100">
+        <div className="pt-4 border-t border-slate-100 text-center">
           <Button
             variant="ghost"
-            fullWidth
+            size="sm"
             onClick={onCancel}
+            className="text-xs text-slate-500 hover:text-slate-800"
           >
             {t('btnBackHome')}
           </Button>
@@ -329,13 +335,14 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
   }
 
   // ----------------------------------------------------
-  // FORMULAIRE DU TUNNEL EN 4 ÉTAPES
+  // TUNNEL EN 2 ÉTAPES RAPIDES & INTUITIVES
   // ----------------------------------------------------
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Barre de navigation de formulaire */}
+      {/* Barre supérieure du formulaire */}
       <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <button
+          type="button"
           onClick={handlePrev}
           className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text-main transition-colors py-1 px-2 rounded-lg"
         >
@@ -344,27 +351,24 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
         </button>
 
         <span className="text-xs font-bold text-primary">
-          {isRTL ? `المرحلة ${step} من 4` : `Étape ${step} sur 4`}
+          {isRTL ? `المرحلة ${step} من 2` : `Étape ${step} sur 2`}
         </span>
 
         <span className="text-xs text-text-muted font-medium">
-          {step === 1 && (t('tabRequests') || 'Motif')}
-          {step === 2 && 'Lieu'}
-          {step === 3 && (t('tabPlanning') || 'Créneau')}
-          {step === 4 && 'Contact'}
+          {step === 1 ? 'Soin & Quartier' : 'Créneau & Contact'}
         </span>
       </div>
 
-      {/* Barre de progression tactile */}
-      <div className="w-full bg-slate-100 h-1.5">
+      {/* Barre de progression épurée */}
+      <div className="w-full bg-slate-100 h-1">
         <div 
           className="bg-primary h-full transition-all duration-300 rounded-r-full"
-          style={{ width: `${(step / 4) * 100}%` }}
+          style={{ width: `${(step / 2) * 100}%` }}
         />
       </div>
 
-      {/* Contenu de l'étape active */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+      {/* Contenu de l'étape */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
         {validationError && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -372,169 +376,56 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
           </div>
         )}
 
-        {/* Bannière d'aide directe pour les personnes âgées */}
-        <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-emerald-600" />
-            <span className="font-semibold text-text-main">
-              Besoin d'aide ? Appelez au <a href={`tel:${PRACTITIONER_INFO.phone}`} className="font-bold text-emerald-700 underline">{PRACTITIONER_INFO.phoneDisplay}</a>
-            </span>
-          </div>
-        </div>
-
-        {/* ---------------- ÉTAPE 1 : MOTIF & ORDONNANCE ---------------- */}
+        {/* ------------------------------------------------------------ */}
+        {/* ÉTAPE 1 : MOTIF DE SOIN & QUARTIER                          */}
+        {/* ------------------------------------------------------------ */}
         {step === 1 && (
-          <div className="space-y-5 animate-in fade-in duration-200">
+          <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-lg font-black text-text-main">
-                {t('step1Title')}
+                1. Motif de soin & Quartier
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                {t('step1Subtitle')}
+                Sélectionnez le type de prise en charge et votre localisation à Tanger.
               </p>
             </div>
 
-            {/* Grille des soins */}
-            <div className="grid grid-cols-1 gap-2.5">
-              {CARE_TYPES.map(care => {
-                const isSelected = formData.careTypeId === care.id;
-                return (
-                  <div
-                    key={care.id}
-                    onClick={() => setFormData({ ...formData, careTypeId: care.id })}
-                    className={`
-                      p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
-                      ${isSelected 
-                        ? 'border-primary bg-primary-50/40 ring-2 ring-primary/20 shadow-soft' 
-                        : 'border-slate-100 bg-white hover:border-slate-200'
-                      }
-                    `}
-                  >
-                    <div className="space-y-0.5">
-                      <span className="font-bold text-sm text-text-main">{care.title}</span>
-                      <p className="text-xs text-text-muted">{care.description}</p>
-                    </div>
+            {/* Choix du soin (5 cartes simples et lisibles) */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-text-main block">
+                Type de rééducation souhaité <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {CARE_TYPES.map(care => {
+                  const isSelected = formData.careTypeId === care.id;
+                  return (
+                    <div
+                      key={care.id}
+                      onClick={() => setFormData({ ...formData, careTypeId: care.id })}
+                      className={`
+                        p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
+                        ${isSelected 
+                          ? 'border-primary bg-primary-50/50 ring-2 ring-primary/20 shadow-xs' 
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                        }
+                      `}
+                    >
+                      <div className="space-y-0.5 pr-2">
+                        <span className="font-bold text-sm text-text-main block">{care.title}</span>
+                        <p className="text-xs text-text-muted leading-tight">{care.description}</p>
+                      </div>
 
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ml-3 ${isSelected ? 'bg-primary text-white' : 'border border-slate-200'}`}>
-                      {isSelected && <Check className="w-3.5 h-3.5" />}
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-white' : 'border border-slate-300'}`}>
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Upload d'ordonnance médicale (Facultatif) */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <Camera className="w-4 h-4 text-primary" />
-                  <span>Photo de l'ordonnance médicale</span>
-                </label>
-                <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
-                  Facultatif
-                </span>
+                  );
+                })}
               </div>
-              <p className="text-[11px] text-text-muted">
-                Prenez en photo votre prescription si vous en avez une, cela permet au kiné de préparer au mieux votre séance.
-              </p>
-
-              {formData.prescriptionPreview ? (
-                <div className="relative rounded-2xl border border-slate-200 p-2 bg-slate-50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={formData.prescriptionPreview} 
-                      alt="Ordonnance" 
-                      className="w-14 h-14 object-cover rounded-xl border border-slate-200"
-                    />
-                    <div className="text-xs truncate max-w-[180px]">
-                      <p className="font-semibold text-text-main truncate">
-                        {formData.prescriptionFile ? formData.prescriptionFile.name : 'Ordonnance jointe'}
-                      </p>
-                      <p className="text-emerald-600 font-medium text-[11px] flex items-center gap-1 mt-0.5">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Prête à être envoyée
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={removePrescription}
-                    className="w-8 h-8 rounded-full bg-slate-200 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center text-slate-600 transition-colors mr-1"
-                    title="Supprimer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="border-2 border-dashed border-slate-200 hover:border-primary-300 bg-slate-50/60 hover:bg-primary-50/20 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors text-center">
-                  <Upload className="w-6 h-6 text-primary" />
-                  <span className="text-xs font-semibold text-text-main">
-                    Prendre une photo ou importer un fichier
-                  </span>
-                  <span className="text-[10px] text-text-muted">
-                    JPG, PNG ou PDF (max 8 Mo)
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    capture="environment"
-                    onChange={handlePrescriptionUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ---------------- ÉTAPE 2 : LOCALISATION À TANGER ---------------- */}
-        {step === 2 && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <div>
-              <h2 className="text-lg font-black text-text-main">
-                {t('step2Title')}
-              </h2>
-              <p className="text-xs text-text-muted mt-0.5">
-                {t('step2Subtitle')}
-              </p>
             </div>
 
-            {/* Bouton GPS Tanger */}
-            <div className="bg-primary-50/70 border border-primary-100 rounded-2xl p-4 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                  <Navigation className="w-4 h-4 text-accent" />
-                  {t('gpsTitle')}
-                </span>
-                {gpsSuccess && (
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Check className="w-3 h-3" /> {t('gpsSuccess')}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-text-muted leading-relaxed">
-                {t('gpsHint')}
-              </p>
-              
-              <Button
-                variant={gpsSuccess ? "outline" : "primary"}
-                size="md"
-                fullWidth
-                onClick={handleCaptureGPS}
-                loading={gpsLoading}
-                icon={Navigation}
-              >
-                {gpsSuccess ? t('gpsUpdateButton') : t('gpsButton')}
-              </Button>
-
-              {gpsError && (
-                <p className="text-[11px] text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-200">
-                  {gpsError}
-                </p>
-              )}
-            </div>
-
-            {/* Sélecteur de quartier */}
-            <div className="space-y-1.5">
+            {/* Quartier à Tanger */}
+            <div className="space-y-1.5 pt-2">
               <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-primary" />
                 <span>Quartier à Tanger <span className="text-rose-500">*</span></span>
@@ -552,248 +443,294 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </select>
             </div>
 
-            {/* Précisions d'adresse */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-main">
-                Précisions d'adresse (Résidence, Étage, Porte, Repère)
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Ex : Résidence Tanger Baie, Immeuble C, 3ème étage, porte n°12. En face de la pharmacie..."
-                value={formData.addressDetails}
-                onChange={(e) => setFormData({ ...formData, addressDetails: e.target.value })}
-                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-              />
-              <p className="text-[10px] text-text-muted">
-                Ces indications facilitent l'arrivée ponctuelle du praticien à votre domicile.
-              </p>
-            </div>
-          </div>
-        )}
+            {/* Détails facultatifs (Accordéon dépliable pour ne pas surcharger) */}
+            <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setShowOptionalDetails(!showOptionalDetails)}
+                className="w-full p-3.5 flex items-center justify-between text-left text-xs font-bold text-slate-700 hover:bg-slate-100/70 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-primary" />
+                  <span>Adresse précise, GPS ou ordonnance (facultatif)</span>
+                </span>
+                {showOptionalDetails ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                )}
+              </button>
 
-        {/* ---------------- ÉTAPE 3 : DATE & CRÉNEAU ---------------- */}
-        {step === 3 && (
-          <div className="space-y-5 animate-in fade-in duration-200">
-            <div>
-              <h2 className="text-lg font-black text-text-main">
-                Choisissez votre date et votre créneau
-              </h2>
-              <p className="text-xs text-text-muted mt-0.5">
-                Seuls les créneaux effectivement ouverts par le praticien sont disponibles.
-              </p>
-            </div>
-
-            {availableDates.length === 0 ? (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-center space-y-3">
-                <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
-                <div className="space-y-1">
-                  <h3 className="font-bold text-sm text-text-main">
-                    Aucun créneau ouvert pour les prochains jours
-                  </h3>
-                  <p className="text-xs text-text-muted">
-                    {t('noSlotsDesc') || "Ibrahim n'a pas encore ouvert ses disponibilités sur cette période. Vous pouvez le contacter directement sur WhatsApp pour convenir d'une séance sur mesure."}
-                  </p>
-                </div>
-                <a
-                  href={`https://wa.me/${PRACTITIONER_INFO.whatsappNumber}?text=${encodeURIComponent(t('waGreeting') || "Bonjour Ibrahim, je souhaite savoir quand vous avez des disponibilités pour une séance de kiné à domicile à Tanger.")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#25D366] text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs"
-                >
-                  <MessageCircle className="w-4 h-4 fill-current" />
-                  <span>Demander une disponibilité sur WhatsApp</span>
-                </a>
-              </div>
-            ) : (
-              <>
-                {/* Défilement horizontal des dates ouvertes */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-primary" />
-                    <span>Date disponible</span>
-                  </label>
-                  <div className="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
-                    {availableDates.map(d => {
-                      const isSelected = formData.date === d.iso;
-                      return (
-                        <button
-                          key={d.iso}
-                          type="button"
-                          onClick={() => handleSelectDate(d.iso)}
-                          className={`
-                            shrink-0 w-24 py-3 px-2 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1
-                            ${isSelected
-                              ? 'border-primary bg-primary text-white shadow-soft font-bold'
-                              : 'border-slate-200 bg-white hover:border-primary-200 text-text-main'
-                            }
-                          `}
-                        >
-                          {d.sublabel ? (
-                            <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
-                              {d.sublabel}
-                            </span>
-                          ) : (
-                            <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
-                              {d.label.split(' ')[0]}
-                            </span>
-                          )}
-                          <span className="text-base font-extrabold leading-none">
-                            {d.dateObj.getDate()}
-                          </span>
-                          <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
-                            {d.label.split(' ')[2]}
-                          </span>
-                          <span className={`text-[9px] font-semibold ${isSelected ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                            {d.availableSlotsCount} créneau{d.availableSlotsCount > 1 ? 'x' : ''}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Plages horaires disponibles pour la date sélectionnée */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-primary" />
-                      <span>Créneaux disponibles</span>
+              {showOptionalDetails && (
+                <div className="p-4 border-t border-slate-200 space-y-4 bg-white">
+                  {/* Précisions d'adresse */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-main">
+                      Précisions d'adresse (Résidence, Étage, Porte, Repère)
                     </label>
-                    {new Date(formData.date + 'T00:00:00').getDay() === 0 || new Date(formData.date + 'T00:00:00').getDay() === 6 ? (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                        Week-end ouvert
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-primary bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full">
-                        Soirée garantie dès 17h
-                      </span>
+                    <textarea
+                      rows={2}
+                      placeholder="Ex : Résidence Tanger Baie, Immeuble C, 3ème étage..."
+                      value={formData.addressDetails}
+                      onChange={(e) => setFormData({ ...formData, addressDetails: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
+                    />
+                  </div>
+
+                  {/* Bouton GPS Tanger */}
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <Button
+                      type="button"
+                      variant={gpsSuccess ? "outline" : "primary"}
+                      size="sm"
+                      onClick={handleCaptureGPS}
+                      loading={gpsLoading}
+                      icon={Navigation}
+                      className="text-xs py-2 px-3"
+                    >
+                      {gpsSuccess ? "Position GPS enregistrée ✓" : "Utiliser ma position GPS"}
+                    </Button>
+                    {gpsError && (
+                      <span className="text-[10px] text-rose-600 truncate max-w-[150px]">{gpsError}</span>
                     )}
                   </div>
 
-                  {activeDateSlots.length === 0 ? (
-                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center text-xs text-text-muted">
-                      Aucun créneau ouvert pour cette date. Veuillez sélectionner une autre date ci-dessus.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-2.5">
-                      {activeDateSlots.map(slot => {
-                        const isSelected = formData.timeSlotId === slot.id && !formData.timeSlotCustomLabel;
-                        return (
-                          <div
-                            key={slot.id}
-                            onClick={() => setFormData({ ...formData, timeSlotId: slot.id, timeSlotCustomLabel: '' })}
-                            className={`
-                              p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
-                              ${isSelected
-                                ? 'border-primary bg-primary-50/40 ring-2 ring-primary/20 shadow-soft'
-                                : 'border-slate-100 bg-white hover:border-slate-200'
-                              }
-                            `}
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm text-text-main">{slot.label}</span>
-                                <span className="text-xs font-semibold text-primary bg-primary-100/60 px-2 py-0.5 rounded-md">
-                                  {slot.hours}
-                                </span>
-                              </div>
-                              <p className="text-xs text-text-muted mt-0.5">{slot.description}</p>
-                            </div>
-
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-white' : 'border border-slate-200'}`}>
-                              {isSelected && <Check className="w-3.5 h-3.5" />}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Option créneau en journée en semaine (au cas où) */}
-                  {(new Date(formData.date + 'T00:00:00').getDay() >= 1 && new Date(formData.date + 'T00:00:00').getDay() <= 5) && (
-                    <div className="mt-3 bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-2.5">
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-xs font-bold text-text-main">
-                            Besoin d'un créneau en journée en semaine (Matin ou 14h–17h) ?
-                          </p>
-                          <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
-                            Ibrahim exerce principalement en soirée et les week-ends. En cas de besoin particulier en journée, vous pouvez demander ce créneau sous réserve de confirmation préalable.
-                          </p>
+                  {/* Upload photo ordonnance */}
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                    <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-primary" />
+                      <span>Photo de l'ordonnance médicale</span>
+                    </label>
+                    {formData.prescriptionPreview ? (
+                      <div className="flex items-center justify-between p-2 rounded-xl border border-slate-200 bg-slate-50">
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={formData.prescriptionPreview} 
+                            alt="Ordonnance" 
+                            className="w-10 h-10 object-cover rounded-lg border border-slate-200"
+                          />
+                          <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Prête
+                          </span>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={() => setFormData({
-                            ...formData,
-                            timeSlotId: 'matin_sur_demande',
-                            timeSlotCustomLabel: 'Matinée (09h00 – 12h00) • Sur confirmation préalable'
-                          })}
-                          className={`p-2.5 rounded-xl border text-left transition-all ${
-                            formData.timeSlotId === 'matin_sur_demande'
-                              ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                          }`}
+                          onClick={removePrescription}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-text-main">Matinée</span>
-                            <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
-                          </div>
-                          <span className="text-[10px] text-text-muted block mt-0.5">09h00 – 12h00</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setFormData({
-                            ...formData,
-                            timeSlotId: 'apres_midi_sur_demande',
-                            timeSlotCustomLabel: 'Après-midi (14h00 – 17h00) • Sur confirmation préalable'
-                          })}
-                          className={`p-2.5 rounded-xl border text-left transition-all ${
-                            formData.timeSlotId === 'apres_midi_sur_demande'
-                              ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-text-main">Après-midi</span>
-                            <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
-                          </div>
-                          <span className="text-[10px] text-text-muted block mt-0.5">14h00 – 17h00</span>
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
-                    </div>
-                  )}
-
-                  <p className="text-[11px] text-text-muted italic">
-                    * Le praticien vous confirmera l'horaire précis de son passage dans la plage convenue.
-                  </p>
+                    ) : (
+                      <label className="border border-dashed border-slate-300 hover:border-primary-400 bg-slate-50 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-colors text-center text-xs font-semibold text-slate-600 hover:text-primary">
+                        <Upload className="w-4 h-4 text-primary" />
+                        <span>Prendre en photo l'ordonnance</span>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          capture="environment"
+                          onChange={handlePrescriptionUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
-              </>
-            )}
+              )}
+            </div>
+
+            {/* Tarif informatif discret */}
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs text-slate-600 flex items-center justify-between">
+              <span className="font-semibold">Tarif indicatif :</span>
+              <span className="font-bold text-slate-900">À partir de {PRACTITIONER_INFO.basePriceMAD} DH • Paiement sur place</span>
+            </div>
           </div>
         )}
 
-        {/* ---------------- ÉTAPE 4 : COORDONNÉES & VALIDATION ---------------- */}
-        {step === 4 && (
-          <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in duration-200">
+        {/* ------------------------------------------------------------ */}
+        {/* ÉTAPE 2 : DATE, CRÉNEAU & VOS COORDONNÉES                    */}
+        {/* ------------------------------------------------------------ */}
+        {step === 2 && (
+          <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-lg font-black text-text-main">
-                {t('step4Title')}
+                2. Date, Créneau & Coordonnées
               </h2>
               <p className="text-xs text-text-muted mt-0.5">
-                {t('step4Subtitle')}
+                Sélectionnez votre créneau et vos informations de contact pour confirmer la séance.
               </p>
             </div>
 
-            <div className="space-y-3">
-              {/* Nom du patient */}
-              <div className="space-y-1">
+            {/* 1. Sélection de la Date */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>Date souhaitée <span className="text-rose-500">*</span></span>
+              </label>
+
+              {availableDates.length === 0 ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center text-xs text-amber-800">
+                  Aucun créneau ouvert pour le moment. Contactez directement Ibrahim sur WhatsApp.
+                </div>
+              ) : (
+                <div className="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
+                  {availableDates.map(d => {
+                    const isSelected = formData.date === d.iso;
+                    return (
+                      <button
+                        key={d.iso}
+                        type="button"
+                        onClick={() => handleSelectDate(d.iso)}
+                        className={`
+                          shrink-0 w-24 py-3 px-2 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1
+                          ${isSelected
+                            ? 'border-primary bg-primary text-white shadow-soft font-bold'
+                            : 'border-slate-200 bg-white hover:border-primary-200 text-text-main'
+                          }
+                        `}
+                      >
+                        {d.sublabel ? (
+                          <span className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-accent-200' : 'text-accent'}`}>
+                            {d.sublabel}
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
+                            {d.label.split(' ')[0]}
+                          </span>
+                        )}
+                        <span className="text-base font-extrabold leading-none">
+                          {d.dateObj.getDate()}
+                        </span>
+                        <span className={`text-[10px] ${isSelected ? 'text-primary-100' : 'text-text-muted'}`}>
+                          {d.label.split(' ')[2]}
+                        </span>
+                        <span className={`text-[9px] font-semibold ${isSelected ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                          {d.availableSlotsCount} créneau{d.availableSlotsCount > 1 ? 'x' : ''}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 2. Créneaux disponibles pour la date */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-primary" />
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span>Créneau horaire <span className="text-rose-500">*</span></span>
+                </label>
+                {new Date(formData.date + 'T00:00:00').getDay() === 0 || new Date(formData.date + 'T00:00:00').getDay() === 6 ? (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    Week-end ouvert
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-primary bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-full">
+                    Soirée dès 17h
+                  </span>
+                )}
+              </div>
+
+              {activeDateSlots.length === 0 ? (
+                <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center text-xs text-text-muted">
+                  Aucun créneau ouvert pour cette date. Choisissez une autre date ci-dessus.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {activeDateSlots.map(slot => {
+                    const isSelected = formData.timeSlotId === slot.id && !formData.timeSlotCustomLabel;
+                    return (
+                      <div
+                        key={slot.id}
+                        onClick={() => setFormData({ ...formData, timeSlotId: slot.id, timeSlotCustomLabel: '' })}
+                        className={`
+                          p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between
+                          ${isSelected
+                            ? 'border-primary bg-primary-50/50 ring-2 ring-primary/20 shadow-xs'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                          }
+                        `}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-text-main">{slot.label}</span>
+                            <span className="text-xs font-semibold text-primary bg-primary-100/60 px-2 py-0.5 rounded-md">
+                              {slot.hours}
+                            </span>
+                          </div>
+                          <p className="text-xs text-text-muted mt-0.5">{slot.description}</p>
+                        </div>
+
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary text-white' : 'border border-slate-300'}`}>
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Créneau en journée en semaine sur demande */}
+              {(new Date(formData.date + 'T00:00:00').getDay() >= 1 && new Date(formData.date + 'T00:00:00').getDay() <= 5) && (
+                <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2">
+                  <p className="text-xs font-bold text-text-main">
+                    Besoin d'un créneau en journée en semaine ?
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        timeSlotId: 'matin_sur_demande',
+                        timeSlotCustomLabel: 'Matinée (09h00 – 12h00) • Sur confirmation préalable'
+                      })}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        formData.timeSlotId === 'matin_sur_demande'
+                          ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-text-main">Matinée</span>
+                        <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
+                      </div>
+                      <span className="text-[10px] text-text-muted block mt-0.5">09h00 – 12h00</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        timeSlotId: 'apres_midi_sur_demande',
+                        timeSlotCustomLabel: 'Après-midi (14h00 – 17h00) • Sur confirmation préalable'
+                      })}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        formData.timeSlotId === 'apres_midi_sur_demande'
+                          ? 'border-primary bg-primary-50 ring-2 ring-primary/30 text-primary font-bold'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-text-main">Après-midi</span>
+                        <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">À confirmer</span>
+                      </div>
+                      <span className="text-[10px] text-text-muted block mt-0.5">14h00 – 17h00</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Coordonnées du patient */}
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <label className="text-xs font-bold text-text-main block">
+                Vos coordonnées de contact
+              </label>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-primary" />
                   <span>{t('patientNameLabel')} <span className="text-rose-500">*</span></span>
                 </label>
                 <input
@@ -806,10 +743,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 />
               </div>
 
-              {/* Téléphone marocain */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-primary" />
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-primary" />
                   <span>{t('phoneLabel')} <span className="text-rose-500">*</span></span>
                 </label>
                 <input
@@ -822,10 +758,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
                 />
               </div>
 
-              {/* Remarques médicales ou d'accès */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-primary" />
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-slate-400" />
                   <span>{t('notesLabel')}</span>
                 </label>
                 <textarea
@@ -838,31 +773,26 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
               </div>
             </div>
 
-            {/* Récapitulatif avant validation */}
+            {/* Récapitulatif clair avant validation */}
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2 text-xs">
               <span className="font-bold text-text-main block">
                 {t('summaryTitle')}
               </span>
-              <div className="space-y-1 text-text-muted">
+              <div className="space-y-1 text-slate-600">
                 <p>• <strong className="text-text-main">{t('waCare')} :</strong> {currentCare ? currentCare.title : ''}</p>
                 <p>• <strong className="text-text-main">{t('waNeighborhood')} :</strong> {currentNeighborhood ? currentNeighborhood.name : ''}</p>
                 <p>• <strong className="text-text-main">{t('waSlot')} :</strong> {formData.date} ({formData.timeSlotCustomLabel || (currentSlot ? currentSlot.label : '')})</p>
-                <p>• <strong className="text-text-main">{t('transparentPricing')} :</strong> {t('startingAt')} {PRACTITIONER_INFO.basePriceMAD} DH ({t('onSitePayment')}) <span className="text-[10px] text-slate-500 italic">({t('priceNoticeDiagnostic')})</span></p>
-                {formData.geoCoordinates && (
-                  <p className="text-emerald-700 font-semibold">• Coordonnées GPS Tanger incluses</p>
-                )}
-                {formData.prescriptionFile && (
-                  <p className="text-primary font-semibold">• Ordonnance médicale jointe</p>
-                )}
+                <p>• <strong className="text-text-main">Tarif :</strong> À partir de {PRACTITIONER_INFO.basePriceMAD} DH (sur place après la séance)</p>
+                <p className="text-[10px] text-slate-500 italic">* {t('priceNoticeDiagnostic')}</p>
               </div>
             </div>
-          </form>
+          </div>
         )}
       </div>
 
       {/* Barre d'action fixe en bas */}
       <div className="p-4 border-t border-slate-100 bg-white/95 backdrop-blur-md safe-bottom">
-        {step < 4 ? (
+        {step === 1 ? (
           <Button
             variant="accent"
             size="lg"
@@ -870,9 +800,9 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             onClick={handleNext}
             icon={ArrowRight}
             iconPosition={isRTL ? "left" : "right"}
-            className="shadow-md shadow-accent/20"
+            className="shadow-md shadow-accent/20 py-3.5 text-sm font-black rounded-2xl"
           >
-            {t('btnContinue')}
+            Continuer vers les disponibilités (Étape 2/2)
           </Button>
         ) : (
           <Button
@@ -883,7 +813,7 @@ export default function BookingFlow({ initialCareType = null, onCancel, onComple
             loading={isSubmitting}
             icon={Check}
             iconPosition={isRTL ? "left" : "right"}
-            className="shadow-lg shadow-accent/25"
+            className="shadow-lg shadow-accent/25 py-3.5 text-sm font-black rounded-2xl"
           >
             {t('btnSubmit')}
           </Button>

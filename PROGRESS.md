@@ -211,3 +211,39 @@ Navigation désormais 100 % séquentielle et claire : Écran 1 (Présentation pu
    - Mot de passe : `Kine@Tanger2026`
    - Pré-rempli sur la page de connexion `/admin/login`.
 5. **Feedbacks visuels Cloud dans l'admin :** Confirmation immédiate « ✅ Synchronisé en direct sur le Cloud ! » pour Ibrahim.
+
+
+---
+
+## [Mise à Jour 10 — Épuration Ciblée de l'Application : Clarté & Expérience Patient Ultra-Intuitive]
+**Date & Heure :** 20 Novembre 2026 à 20:08  
+**Statut :** ✅ Déployé en direct sur Firebase & Validé
+
+### Améliorations majeures d'ergonomie (Option A) :
+1. **Épuration radicale de la page d'accueil (`LandingHero.jsx` & `PatientHome.jsx`) :**
+   - Suppression du bouton flottant d'urgence (`FloatingContact.jsx`) qui encombrait l'écran mobile et masquait les boutons d'action.
+   - Suppression de l'immense bloc noir avec 4 actions concurrentes et du bouton « Recommander / Partager ».
+   - Unification et hiérarchisation sur **2 actions directes et exclusives** :
+     - **Bouton 1 (Primaire) :** `Prendre rendez-vous en ligne (1 min)`
+     - **Bouton 2 (Secondaire) :** `Contacter directement sur WhatsApp`
+     - Mention d'appel direct discret en bas pour les personnes âgées sans créer de surcharge visuelle.
+   - Présentation claire et transparente du tarif : **À partir de 200 DH / séance** avec la mention obligatoire : `* Le tarif peut changer en fonction du diagnostic.`
+   - Aucune mention de matériel (« matériel » 100% retiré).
+
+2. **Refonte du tunnel de réservation en 2 étapes rapides (`BookingFlow.jsx`) :**
+   - Remplacement de l'ancien tunnel en 4 étapes par un flux express en **2 étapes claires** :
+     - **Étape 1 : Soin & Quartier**
+       - Sélection directe du motif de soin (5 cartes épurées).
+       - Choix du quartier à Tanger dans la liste déroulante.
+       - Section accordéon facultative pour les détails d'adresse, le GPS en 1 clic ou l'ordonnance médicale sans forcer l'utilisateur à naviguer sur un écran dédié.
+     - **Étape 2 : Date, Créneau & Coordonnées**
+       - Défilement horizontal des dates ouvertes et sélection des créneaux (priorité Week-ends & Soirées en semaine, ou module sur demande en journée).
+       - Saisie du nom et numéro WhatsApp marocain.
+       - Récapitulatif clair et validation en 1 clic.
+   - Écran de confirmation avec bouton direct WhatsApp pré-rempli.
+
+3. **Mise à jour des textes et traductions (`translations.js`) :**
+   - Ajustement dans les 4 langues (FR, AR, EN, ES) pour refléter la « Réservation express en 2 étapes ».
+
+4. **Déploiement Firebase Hosting :**
+   - Production en ligne : [https://brahim-projet-kine.web.app](https://brahim-projet-kine.web.app)

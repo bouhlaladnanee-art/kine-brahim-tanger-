@@ -4,7 +4,6 @@ import { Lock } from 'lucide-react';
 import Header from '../components/common/Header';
 import LandingHero from '../components/patient/LandingHero';
 import BookingFlow from '../components/patient/BookingFlow';
-import FloatingContact from '../components/patient/FloatingContact';
 import { PRACTITIONER_INFO } from '../data/constants';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -28,8 +27,8 @@ export default function PatientHome() {
       <Header
         showBack={isBookingOpen}
         onBack={handleCloseBooking}
-        title={isBookingOpen ? t('specialtiesTitle') : PRACTITIONER_INFO.name}
-        subtitle={isBookingOpen ? "Tanger • Étape 1 sur 4" : t('appTitle')}
+        title={isBookingOpen ? "Réservation en ligne" : PRACTITIONER_INFO.name}
+        subtitle={isBookingOpen ? "Tanger • Prise de rendez-vous express" : t('appTitle')}
       />
 
       {/* Pages distinctes : SOIT la Fiche de présentation, SOIT le Formulaire par étapes */}
@@ -41,15 +40,12 @@ export default function PatientHome() {
           }}
         />
       ) : (
-        /* PAGE 1 UNIQUE : FICHE DE PRÉSENTATION MÉDICALE OFFICIELLE */
+        /* PAGE UNIQUE : FICHE DE PRÉSENTATION MÉDICALE OFFICIELLE */
         <div className="flex-1 flex flex-col justify-between">
           <LandingHero onStartBooking={handleStartBooking} />
 
-          {/* Bouton d'urgence flottant */}
-          <FloatingContact />
-
           {/* Footer discret avec lien Espace Kiné (/admin) */}
-          <footer className="p-4 text-center border-t border-slate-100 bg-white/50 space-y-2">
+          <footer className="p-4 text-center border-t border-slate-100 bg-white/50 space-y-2 mt-6">
             <p className="text-[11px] text-text-muted">
               © {new Date().getFullYear()} {PRACTITIONER_INFO.name} — Kinésithérapie à domicile à Tanger.
             </p>
